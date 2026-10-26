@@ -325,6 +325,15 @@ impl CurveMemoKey {
         if !k.memoize_curve_caches || !memo_pure(curve) {
             return None;
         }
+        Self::of_kernel(k)
+    }
+
+    /// The kernel part of a memo key, for any memo of a build that reads `k` only
+    /// through its tolerances and context scalars; `None` when the memo is off.
+    pub(crate) fn of_kernel(k: &Kernel) -> Option<Self> {
+        if !k.memoize_curve_caches {
+            return None;
+        }
         let c = &k.context;
         Some(Self {
             tolerances: k.tolerances,
@@ -1739,6 +1748,9 @@ pub fn local_property_analysis<C: CurveEvaluate + ?Sized, O: Copy>(
     let set_periodic = false; // IsPeriodic( crInterval );
 
     let mut ls = LocalSolve1d::with_interval(*interval, set_periodic);
+    // Not upstream (WR-253, tangency-labs/solidcore#481): opt-in, a failed evaluation
+    // (e.g. the radius of curvature of a straight piece) is no sign change
+    ls.set_failed_guess_no_sign_change(k.fixes.oscillating_skips_failed_guesses);
 
     // select the solver and the desired accuracy.
     if property == CurvePropertyType::MinimizeFirstDerivative
