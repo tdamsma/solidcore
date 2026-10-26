@@ -355,7 +355,7 @@ mod tests {
             .unwrap()
             .set_status(FilStatus::Unprocessed);
         calc_rail_x_edge_with_ops(
-            live_solver_ops(solver).unwrap(),
+            live_solver_ops(solver),
             &k,
             objects.target,
             &mut objects.pseudo,
