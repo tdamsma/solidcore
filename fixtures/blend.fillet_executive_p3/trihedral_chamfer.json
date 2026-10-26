@@ -1,0 +1,49 @@
+{
+  "cases": [
+    {
+      "name": "real-box-trihedral-chamfer-intermediate-faces",
+      "upstream_ref": "source/SMLib/src/SmFilletCorner.cpp:3502 (actual linear generators select the planar chamfer branch; intermediate faces before attributes/Stitch)",
+      "inputs": {
+        "real_solid": {
+          "dimensions": [
+            10,
+            20,
+            30
+          ],
+          "radius": 0.5,
+          "xsect": 0,
+          "continuity": 1,
+          "thumbweight": 1,
+          "edges": [
+            2,
+            6,
+            7
+          ],
+          "checkpoint": "intermediate_faces"
+        }
+      }
+    },
+    {
+      "name": "real-box-trihedral-chamfer-full-api",
+      "upstream_ref": "source/SM_API/src/SmApiBrep.cpp:2049 (full public fillet API on three incident box edges with linear cross-sections; final topology, geometry and mass)",
+      "inputs": {
+        "real_solid": {
+          "dimensions": [
+            10,
+            20,
+            30
+          ],
+          "radius": 0.5,
+          "xsect": 0,
+          "continuity": 1,
+          "thumbweight": 1,
+          "edges": [
+            2,
+            6,
+            7
+          ]
+        }
+      }
+    }
+  ]
+}
