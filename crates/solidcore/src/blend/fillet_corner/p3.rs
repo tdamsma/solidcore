@@ -80,6 +80,14 @@
 //!   (next edge use = radial of the clockwise neighbour) is a permutation of the edge
 //!   uses, so it returns to its start; it is bounded by the B-rep's edge use count (an
 //!   error past it, which only corrupt topology reaches). There is no recursion.
+//! - **Not upstream: face-side twists** (WR-604, #1836, the fork's
+//!   tangency-labs/smlib@7fd9fb0), only with
+//!   `Kernel::fixes.coons_corner_twist_from_blend_side`: `CreateCornerPatch` marks the
+//!   ordered corner edges with an original face (bit `k` for ordered edge `k`) and passes
+//!   them to `CreateCornerBlend` (`BSplineSurface::create_corner_blend_with_face_sides`),
+//!   so the Coons patch's corners between a face side and a blend side take the blend
+//!   side's twist. An edge past bit 31 sets no bit (the fork's `1u << ii` is undefined
+//!   there; only a four-sided patch reads the bits).
 
 use std::collections::BTreeMap;
 
@@ -1408,6 +1416,12 @@ impl FilletCorner {
             let mut orients: Vec<OrientType> = Vec::new();
             let mut ordered_surfs: Vec<Option<Surface>> = Vec::new();
 
+            // Not upstream (WR-604, #1836; tangency-labs/smlib@7fd9fb0, under
+            // `coons_corner_twist_from_blend_side`): the edges along a face of the body
+            // (an original face), bit k for ordered edge k: the patch meets those
+            // exactly at its corners
+            let mut face_sides = 0u32;
+
             // for every edge - get edge shape as (neighborFace->Surface,UVTrimCurve) pair
             for ii in 0..total_edges {
                 let fe = *self
@@ -1428,6 +1442,14 @@ impl FilletCorner {
                             .0
                             .and_then(bspline_part);
                         base_surface.clone_from(&env.target.face(orig_face)?.surface);
+                        if env.k.fixes.coons_corner_twist_from_blend_side {
+                            // only a four-sided patch reads the bits; an edge past
+                            // bit 31 (the fork's `1u << ii` is undefined there) sets none
+                            face_sides |= u32::try_from(ii)
+                                .ok()
+                                .and_then(|b| 1u32.checked_shl(b))
+                                .unwrap_or(0);
+                        }
                     } else {
                         // no Original Face branch - curve is only connected to filletSurfaces
                         // use primaryEdgeuse to get (neighborFace,UVTrimCurve) pair
@@ -1503,7 +1525,7 @@ impl FilletCorner {
                 .iter()
                 .map(|s| s.as_ref().map(|surface| BlendNeighbour { surface }))
                 .collect();
-            let blends = BSplineSurface::create_corner_blend(
+            let blends = BSplineSurface::create_corner_blend_with_face_sides(
                 env.k,
                 &curves_3d,
                 &orients,
@@ -1512,6 +1534,7 @@ impl FilletCorner {
                 self.approx_tol_3d,
                 self.tangency_tol_radians,
                 !self.extended_surface_patch,
+                face_sides,
             )?;
 
             // store New FilletSurface in m_vSurfaces
