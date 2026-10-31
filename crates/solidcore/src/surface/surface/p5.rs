@@ -778,6 +778,7 @@ fn find_ps_normal_solve(
     //           - specify boundary behavior
     let mut equations = FindPsNormalEnfo::new(k, test_point, surface, EFF_ZERO * EFF_ZERO, op);
     let mut solver = LocalSolveNd::new(&mut equations, Some(&intervals), Some(&periodicities));
+    solver.set_step_from_its_evaluation(k.fixes.nd_solve_step_from_its_evaluation);
     solver.set_boundary_handler(BoundaryHandler::TotalBoundaryHits, 3);
 
     // let solver look for an answer with a loose tolerance (SER)

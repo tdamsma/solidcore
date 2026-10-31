@@ -24,6 +24,7 @@
 //! | [`LocalSolveNd::current_iteration`]         | `m_lCurrentIteration`                            |
 //! | [`LocalSolveNd::evaluator`]                 | `m_rFunctionEvaluator`                           |
 //! | [`LocalSolveNd::set_step_cutting_enabled`]  | `SetStepCuttingEnabled`                          |
+//! | [`LocalSolveNd::set_step_from_its_evaluation`] | (fork d2757e1; WR-253 addendum, opt-in)       |
 //! | [`LocalSolveNd::set_desired_accuracy`]      | `SetDesiredAccuracy`                             |
 //! | [`LocalSolveNd::set_maximum_iterations`]    | `SetMaximumIterations`                           |
 //! | [`LocalSolveNd::set_boundary_handler`]      | `SetBoundaryHandler`                             |
@@ -52,6 +53,12 @@
 //!   dimension). Only a linear solve failing with `SM_ERR` ends the iteration with
 //!   [`TerminationReason::BadJacobian`] as upstream; its other errors (unreachable
 //!   with an `N x N` Jacobian) are returned.
+//! - Opt-in (`Kernel::fixes.nd_solve_step_from_its_evaluation`, WR-253 addendum, the fork's
+//!   tangency-labs/smlib@d2757e1, `SmLocalSolveNd` part; off by default), set per solver with
+//!   [`LocalSolveNd::set_step_from_its_evaluation`]: a failed evaluation adds nothing to the
+//!   step's error sum, a failed scaled evaluation is never taken, the scaled step when taken
+//!   brings its own Jacobian and found flag, a step none of whose evaluations succeeded
+//!   ends the line search, and a failed re-evaluation at the best guess is no solution.
 //! - `ComputeJacobian` is a free function over any [`EvalNFunctions`]; Jacobian
 //!   writes outside the matrix return `InvalidInput` (upstream writes out of bounds).
 //!   As upstream, on failure the evaluated parameter is left perturbed in `x`.
@@ -290,6 +297,7 @@ pub struct LocalSolveNd<'a, E: EvalNFunctions + ?Sized> {
     boundary_handler: BoundaryHandler,
     max_boundary_hits: u64,
     step_cutting_enabled: bool,
+    step_from_its_evaluation: bool,
     current_iteration: u64,
     termination_reason: TerminationReason,
 }
@@ -316,6 +324,7 @@ impl<'a, E: EvalNFunctions + ?Sized> LocalSolveNd<'a, E> {
             boundary_handler: BoundaryHandler::HitsAllBoundaries,
             max_boundary_hits: 3,
             step_cutting_enabled: false,
+            step_from_its_evaluation: false,
             current_iteration: 0,
             termination_reason: TerminationReason::Undefined,
         }
@@ -350,6 +359,15 @@ impl<'a, E: EvalNFunctions + ?Sized> LocalSolveNd<'a, E> {
     /// worse (`SetStepCuttingEnabled`).
     pub fn set_step_cutting_enabled(&mut self, enabled: bool) {
         self.step_cutting_enabled = enabled;
+    }
+
+    /// With `on` (`Kernel::fixes.nd_solve_step_from_its_evaluation`, WR-253 addendum; the fork's
+    /// tangency-labs/smlib@d2757e1), each step takes its equation values, Jacobian and
+    /// found flag from the evaluation whose point it uses, sums no equations of a failed
+    /// evaluation, ends the line search when none of its evaluations succeeded, and a
+    /// failed re-evaluation at the best guess is no solution. Off: upstream.
+    pub fn set_step_from_its_evaluation(&mut self, on: bool) {
+        self.step_from_its_evaluation = on;
     }
 
     /// Sets the tight stopping tolerance on the sum of `|F_i|`
@@ -545,8 +563,12 @@ impl<'a, E: EvalNFunctions + ?Sized> LocalSolveNd<'a, E> {
                     }
                 }
 
-                // accumulate the errors
-                next_sum_f = sum_abs(&equation_values);
+                // accumulate the errors (opt-in: a failed evaluation has no equation values)
+                next_sum_f = if self.step_from_its_evaluation && first_failed {
+                    0.0
+                } else {
+                    sum_abs(&equation_values)
+                };
 
                 // if clamped, compare the unscaled and scaled locations
                 if clamped {
@@ -598,16 +620,40 @@ impl<'a, E: EvalNFunctions + ?Sized> LocalSolveNd<'a, E> {
                             break;
                         }
 
-                        // and see how good it is
-                        let next_sum_f2 = sum_abs(&equation_values2);
+                        // and see how good it is (opt-in: a failed evaluation has no
+                        // equation values)
+                        let next_sum_f2 = if self.step_from_its_evaluation && second.is_none() {
+                            0.0
+                        } else {
+                            sum_abs(&equation_values2)
+                        };
 
-                        // take the scaled step if it is better (or the first failed)
-                        if next_sum_f2 < next_sum_f || first_failed {
+                        if self.step_from_its_evaluation {
+                            // take the scaled step if it was evaluated and is better (or the
+                            // first failed): the step, its equations, its Jacobian and its
+                            // found flag all come from this evaluation
+                            if let Some(found2) = second {
+                                if next_sum_f2 < next_sum_f || first_failed {
+                                    next_guess_clamped.clone_from(&next_guess_clamped_scaled);
+                                    equation_values.clone_from(&equation_values2);
+                                    jacobian.clone_from(&jacobian2);
+                                    found_answer = found2;
+                                    next_sum_f = next_sum_f2;
+                                    first_failed = false;
+                                }
+                            }
+                        } else if next_sum_f2 < next_sum_f || first_failed {
+                            // take the scaled step if it is better (or the first failed)
                             next_guess_clamped.clone_from(&next_guess_clamped_scaled);
                             equation_values.clone_from(&equation_values2);
                             next_sum_f = next_sum_f2;
                         }
                     }
+                }
+
+                // opt-in: the clamped step could not be evaluated, and no scaled one was
+                if self.step_from_its_evaluation && first_failed {
+                    break;
                 }
 
                 // record the better clamped value
@@ -739,11 +785,15 @@ impl<'a, E: EvalNFunctions + ?Sized> LocalSolveNd<'a, E> {
             sum_f = best_sum_f;
             solution = best_guess;
             // upstream ignores this evaluation's status
-            eval_outcome(self.evaluator.evaluate(
+            let reevaluated = eval_outcome(self.evaluator.evaluate(
                 &solution,
                 &mut equation_values,
                 Some(&mut jacobian),
             ))?;
+            // opt-in: a best guess that cannot be evaluated is no solution
+            if self.step_from_its_evaluation && reevaluated.is_none() {
+                return Ok(self.done(false, TerminationReason::UnableToConverge, solution));
+            }
         }
 
         // converged

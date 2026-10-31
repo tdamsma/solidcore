@@ -2242,6 +2242,7 @@ fn cs_intersect_local_solve(
     let periodicities = [false; 3];
     let mut equations = CsIntersectEnfo::new(k, curve, surface, squared_tol);
     let mut solver = LocalSolveNd::new(&mut equations, Some(&bounds), Some(&periodicities));
+    solver.set_step_from_its_evaluation(k.fixes.nd_solve_step_from_its_evaluation);
     solver.set_desired_accuracy(EFF_ZERO / 10.0);
     solver.set_step_cutting_enabled(true);
     solver.set_boundary_handler(BoundaryHandler::TotalBoundaryHits, 6);

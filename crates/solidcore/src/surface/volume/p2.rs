@@ -1404,6 +1404,7 @@ impl Volume {
 
         // 1. construct NR Solver
         let mut eval_fun = FindPvIntersect::new(proj_point, self, EFF_ZERO * EFF_ZERO);
+        // (no kernel here: `nd_solve_step_from_its_evaluation`, WR-253 addendum, stays upstream's)
         let mut ls = LocalSolveNd::new(&mut eval_fun, Some(&intervals), Some(&periodicities));
         ls.set_boundary_handler(BoundaryHandler::TotalBoundaryHits, 3);
 
