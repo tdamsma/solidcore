@@ -1,0 +1,2679 @@
+diff --git a/crates/difftest/src/solidcraft.rs b/crates/difftest/src/solidcraft.rs
+index fe8eebe17..d951bc1cd 100644
+--- a/crates/difftest/src/solidcraft.rs
++++ b/crates/difftest/src/solidcraft.rs
+@@ -1465,6 +1465,16 @@ fn enable_fix(k: &mut Kernel, name: &str) -> Result<(), String> {
+ /// Runs `case` on solidcore.
+ pub fn run_rust(case: &Case) -> Run {
+     let mut k = Kernel::default();
++    if std::env::var("FLAGHIT_ALL_ON").is_ok() {
++        // FLAGHIT instrumentation (temporary): every flag on.
++        for n in solidcore::kernel::UpstreamFixes::SOLIDCRAFT_FORK
++            .iter()
++            .chain(solidcore::kernel::UpstreamFixes::SOLIDCRAFT_REPORTED)
++            .chain(solidcore::kernel::UpstreamFixes::NOT_SOLIDCRAFT)
++        {
++            k.fixes.set_by_name(n, true);
++        }
++    }
+     for fix in &case.fixes {
+         if let Err(msg) = enable_fix(&mut k, fix) {
+             return Run::Error(msg);
+diff --git a/crates/solidcore/src/blend/fillet_corner/p1.rs b/crates/solidcore/src/blend/fillet_corner/p1.rs
+index bbf2f5bba..b63dcb200 100644
+--- a/crates/solidcore/src/blend/fillet_corner/p1.rs
++++ b/crates/solidcore/src/blend/fillet_corner/p1.rs
+@@ -1204,7 +1204,7 @@ pub fn check_nx1_degeneracy_status(
+     // `fillet_knife_edge_rounds` (WR-570, fork b7ec55b) anti-parallel normals are a cusp
+     // (the faces folded back on each other, a knife edge): the ball touches them back
+     // from the vertex and the fillet ends there as at any other corner
+-    if k.fixes.fillet_knife_edge_rounds {
++    if k.fixes.hit_fillet_knife_edge_rounds() {
+         // (`bAntiParallel` starts FALSE; `IsParallelTo` leaves it for a zero vector)
+         let (parallel, anti) = faceuse_normal1.parallel_sense(faceuse_normal2, EFF_ZERO_SQRT);
+         return Ok(Ok(parallel && !anti.unwrap_or(false)));
+@@ -1482,7 +1482,7 @@ impl FilletCorner {
+         let [end_rib] = self.edges[..] else {
+             return Ok(false);
+         };
+-        if !k.fixes.fillet_nx1_end_rib_global_merge
++        if !k.fixes.hit_fillet_nx1_end_rib_global_merge()
+             || !matches!(self.kind, FilletCornerKind::NByOne | FilletCornerKind::Open)
+             || pseudo.fillet_edge(end_rib)?.edge_type != FilletEdgeType::FilletXSideFace
+         {
+diff --git a/crates/solidcore/src/blend/fillet_corner/topology.rs b/crates/solidcore/src/blend/fillet_corner/topology.rs
+index cd200bd2f..52297d3b2 100644
+--- a/crates/solidcore/src/blend/fillet_corner/topology.rs
++++ b/crates/solidcore/src/blend/fillet_corner/topology.rs
+@@ -384,7 +384,7 @@ impl FilletCorner {
+         // the one reached past it round the vertex (tangency-labs/smlib@d5ebcb3, WR-457).
+         let mut corner_sides = sides;
+         let mut corner_total = total;
+-        if k.fixes.fillet_nx1_tangent_side_edge && !closed_side && total > 3 {
++        if k.fixes.hit_fillet_nx1_tangent_side_edge() && !closed_side && total > 3 {
+             let tol_deg = crate::math::rad_to_deg(self.tangency_tol_radians);
+             for kk in 0..2 {
+                 let other = 1 - kk;
+@@ -416,7 +416,7 @@ impl FilletCorner {
+                         // continuing a boss's base circle past a wall. The rail on the side
+                         // face runs alongside it and never meets it; the round ends on
+                         // the end face past it (tangency-labs/smlib@420e47d, WR-499).
+-                        if !k.fixes.fillet_nx1_opposite_continuation_side_edge {
++                        if !k.fixes.hit_fillet_nx1_opposite_continuation_side_edge() {
+                             break;
+                         }
+                         let filleted_edge = edge_of(target, filleted)?;
+@@ -457,7 +457,7 @@ impl FilletCorner {
+                     // end, below a wall the bar's top meets) has no convexity: it is never
+                     // of the opposite one, so it is the corner's edge
+                     // (tangency-labs/smlib@1ff7353, WR-593).
+-                    if (k.fixes.fillet_nx1_tangent_corner_edge
++                    if (k.fixes.hit_fillet_nx1_tangent_corner_edge()
+                         && check_tangential_edgeuse_at_vertex(k, target, next, vertex, tol_deg)?)
+                         || same_convexity_edges_round_vertex(k, target, filleted, next_edge)?
+                     {
+diff --git a/crates/solidcore/src/blend/fillet_corner/topology/mixed_3x2.rs b/crates/solidcore/src/blend/fillet_corner/topology/mixed_3x2.rs
+index f70dec96b..9698d4849 100644
+--- a/crates/solidcore/src/blend/fillet_corner/topology/mixed_3x2.rs
++++ b/crates/solidcore/src/blend/fillet_corner/topology/mixed_3x2.rs
+@@ -137,7 +137,7 @@ impl FilletCorner {
+         // `fillet_3x2_mixed_concave_side_edge` (WR-524) the roles follow the unfilleted
+         // edge's convexity, as tangency-labs/smlib@1255993: that fork resolves the
+         // in-between edge use and its convexity before the solvers.
+-        let (cross_eu, ext_eu, cross_id, ext_id) = if k.fixes.fillet_3x2_mixed_concave_side_edge {
++        let (cross_eu, ext_eu, cross_id, ext_id) = if k.fixes.hit_fillet_3x2_mixed_concave_side_edge() {
+             let curr_eu = curr_eu_found.ok_or_else(|| SolidError::null_pointer(OP))?;
+             if eu2::is_convex_radial_sector(k, target, curr_eu, 5, false, 0.0)? {
+                 (convex_eu, concave_eu, convex_id, concave_id)
+diff --git a/crates/solidcore/src/blend/fillet_executive/api.rs b/crates/solidcore/src/blend/fillet_executive/api.rs
+index 913d33a24..315deccfe 100644
+--- a/crates/solidcore/src/blend/fillet_executive/api.rs
++++ b/crates/solidcore/src/blend/fillet_executive/api.rs
+@@ -86,7 +86,7 @@ fn refusing_non_manifold_result(
+     brep: &mut Brep,
+     fillet: impl FnOnce(&mut Kernel, &mut Brep) -> Result<()>,
+ ) -> Result<()> {
+-    let saved = if k.fixes.fillet_refuse_non_manifold_result {
++    let saved = if k.fixes.hit_fillet_refuse_non_manifold_result() {
+         Some(brep.clone_for_rollback())
+     } else {
+         None
+diff --git a/crates/solidcore/src/blend/fillet_executive/p1.rs b/crates/solidcore/src/blend/fillet_executive/p1.rs
+index 061b28649..38be61c0b 100644
+--- a/crates/solidcore/src/blend/fillet_executive/p1.rs
++++ b/crates/solidcore/src/blend/fillet_executive/p1.rs
+@@ -1120,7 +1120,7 @@ impl<O: ClassObject + SolutionObject + Ord> FilletExecutive<O> {
+                         .insert(vertex, VertexEntry::Corner(corner));
+                 }
+                 CornerCreation::Unsupported { location } => {
+-                    if k.fixes.fillet_vertex_error_diagnostics {
++                    if k.fixes.hit_fillet_vertex_error_diagnostics() {
+                         self.error.note_vertex_error(
+                             vertex,
+                             location,
+diff --git a/crates/solidcore/src/blend/fillet_executive/p3.rs b/crates/solidcore/src/blend/fillet_executive/p3.rs
+index 877a2971a..8f258acae 100644
+--- a/crates/solidcore/src/blend/fillet_executive/p3.rs
++++ b/crates/solidcore/src/blend/fillet_executive/p3.rs
+@@ -2095,7 +2095,7 @@ impl<O: ClassObject + SolutionObject + Ord> FilletExecutive<O> {
+         }
+         access.create_corners(k, self, None)?;
+         self.do_filleting(k, access, None)?;
+-        if !k.fixes.fillet_refuse_non_manifold_result {
++        if !k.fixes.hit_fillet_refuse_non_manifold_result() {
+             return Ok(());
+         }
+         self.check_closed_manifold(access)
+@@ -2280,7 +2280,7 @@ impl<O: ClassObject + SolutionObject + Ord> FilletExecutive<O> {
+         k: &mut Kernel,
+         access: &mut impl SolverGeometryAccess<O>,
+     ) -> Result<()> {
+-        if k.fixes.fillet_refuse_rails_leaving_faces {
++        if k.fixes.hit_fillet_refuse_rails_leaving_faces() {
+             let mut index = 0;
+             while let Some(solver) = self.solvers.get(index).copied() {
+                 if !access.geometry_rails_fit(k, solver, self)? {
+@@ -2311,7 +2311,7 @@ impl<O: ClassObject + SolutionObject + Ord> FilletExecutive<O> {
+         k: &mut Kernel,
+         access: &mut impl SolverGeometryAccess<O>,
+     ) -> Result<()> {
+-        if k.fixes.fillet_refuse_face_consuming_blends
++        if k.fixes.hit_fillet_refuse_face_consuming_blends()
+             && !access.geometry_faces_outlast(k, &self.solvers)?
+         {
+             return self.record_no_room(
+@@ -2333,7 +2333,7 @@ impl<O: ClassObject + SolutionObject + Ord> FilletExecutive<O> {
+         k: &mut Kernel,
+         access: &mut impl SolverGeometryAccess<O>,
+     ) -> Result<()> {
+-        if k.fixes.fillet_refuse_overlapping_bands
++        if k.fixes.hit_fillet_refuse_overlapping_bands()
+             && !access.geometry_bands_clear_other_rails(k, &self.solvers)?
+         {
+             return self.record_no_room(
+@@ -2589,7 +2589,7 @@ impl<O: ClassObject + SolutionObject + Ord> FilletExecutive<O> {
+         // Opt-in, not upstream (`fixes.fillet_patch_keeps_fillet_edges`, WR-546, #1377;
+         // tangency-labs/smlib@1072d1b): where a corner's patch meets a fillet, the
+         // fillet's edge is kept (`SmFilletPatchStitchCallback`).
+-        let mut attempt = if k.fixes.fillet_patch_keeps_fillet_edges {
++        let mut attempt = if k.fixes.hit_fillet_patch_keeps_fillet_edges() {
+             access.stitch_body_keeping_fillet_edges(k, fillet, tolerance, &self.corners)?
+         } else {
+             access.stitch_body(k, fillet, tolerance)?
+@@ -2625,7 +2625,7 @@ impl<O: ClassObject + SolutionObject + Ord> FilletExecutive<O> {
+         // Opt-in, not upstream (`fixes.fillet_refuse_ball_not_fitting`, WR-462, #1172):
+         // a blend whose rolling ball does not fit a face it rolls on has a rail turned
+         // back on itself; a corner where it ends looks for it where it cannot be.
+-        if k.fixes.fillet_refuse_ball_not_fitting {
++        if k.fixes.hit_fillet_refuse_ball_not_fitting() {
+             let mut index = 0;
+             while let Some(solver) = self.solvers.get(index).copied() {
+                 if !access.creation_ball_fits(k, solver)? {
+diff --git a/crates/solidcore/src/blend/fillet_executive/session/finish.rs b/crates/solidcore/src/blend/fillet_executive/session/finish.rs
+index 9d16e43fc..f3b0d8e96 100644
+--- a/crates/solidcore/src/blend/fillet_executive/session/finish.rs
++++ b/crates/solidcore/src/blend/fillet_executive/session/finish.rs
+@@ -503,7 +503,7 @@ impl FilletSession<'_> {
+         // The opt-in missing-corner note is the reason the later stage fails; keep it
+         // through that later error so `error_info()` reports the unsupported vertex,
+         // while the returned failure stays the later stage's own status.
+-        let missing_corner_note = (k.fixes.fillet_vertex_error_diagnostics
++        let missing_corner_note = (k.fixes.hit_fillet_vertex_error_diagnostics()
+             && self.executive.error.code == FilletErrorType::CornerUnsupported as i32)
+             .then(|| self.executive.error.clone());
+         let result = self.do_filleting(k, None);
+@@ -513,7 +513,7 @@ impl FilletSession<'_> {
+             }
+         }
+         result?;
+-        if !k.fixes.fillet_refuse_non_manifold_result {
++        if !k.fixes.hit_fillet_refuse_non_manifold_result() {
+             return Ok(());
+         }
+         self.check_closed_manifold()
+@@ -559,7 +559,7 @@ impl FilletSession<'_> {
+     ) -> Result<()> {
+         self.sync_self_intersection_handler();
+         // WR-459: the clean-up after filleting leaves the target's own edges and faces.
+-        self.objects.cleanup_kept = if k.fixes.fillet_cleanup_keeps_target_faces {
++        self.objects.cleanup_kept = if k.fixes.hit_fillet_cleanup_keeps_target_faces() {
+             Some((
+                 p1::edges(self.objects.target, None)?.into_iter().collect(),
+                 p1::faces(self.objects.target, None)?.into_iter().collect(),
+@@ -581,7 +581,7 @@ impl FilletSession<'_> {
+             if faces < 1 {
+                 return Err(failure());
+             }
+-            if k.fixes.fillet_refuse_crossing_rails {
++            if k.fixes.hit_fillet_refuse_crossing_rails() {
+                 session.refuse_crossing_rails(k)?;
+             }
+             session.shrink_fillet_faces(k)?;
+diff --git a/crates/solidcore/src/blend/fillet_geom/p1.rs b/crates/solidcore/src/blend/fillet_geom/p1.rs
+index a17c0e787..e7c06313e 100644
+--- a/crates/solidcore/src/blend/fillet_geom/p1.rs
++++ b/crates/solidcore/src/blend/fillet_geom/p1.rs
+@@ -2460,13 +2460,13 @@ impl FilletBrep {
+             if let Some(curve) = edge.curve.as_mut() {
+                 // may snap sIvl by tol to existing knots
+                 let trimmed = curve.trim(k, trim_interval, TrimMode::Notify);
+-                if k.fixes.fillet_trim_status {
++                if k.fixes.hit_fillet_trim_status() {
+                     trimmed?;
+                 } else {
+                     ignore_non_unported(trimmed)?;
+                 }
+                 let intersection = edge.interval.intersect(trim_interval);
+-                let temp = if k.fixes.fillet_trim_status {
++                let temp = if k.fixes.hit_fillet_trim_status() {
+                     intersection?
+                 } else {
+                     intersection.unwrap_or_else(|_| Extent1d::new())
+@@ -2480,7 +2480,7 @@ impl FilletBrep {
+         // Spine curve:
+         if let Some(center) = geom.center_line_curve.as_mut() {
+             let trimmed = center.trim(k, trim_interval, TrimMode::Notify);
+-            if k.fixes.fillet_trim_status {
++            if k.fixes.hit_fillet_trim_status() {
+                 trimmed?;
+             } else {
+                 ignore_non_unported(trimmed)?;
+@@ -2493,7 +2493,7 @@ impl FilletBrep {
+             // Trimming is in the u-direction.
+             let u_domain = domain.u_interval();
+             let intersection = u_domain.intersect(trim_interval);
+-            let temp = if k.fixes.fillet_trim_status {
++            let temp = if k.fixes.hit_fillet_trim_status() {
+                 intersection?
+             } else {
+                 intersection.unwrap_or_else(|_| Extent1d::new())
+@@ -2502,7 +2502,7 @@ impl FilletBrep {
+ 
+             // trim to domain
+             let trimmed = surface.trim_with_domain(k, &mut domain);
+-            if k.fixes.fillet_trim_status {
++            if k.fixes.hit_fillet_trim_status() {
+                 trimmed?;
+             } else {
+                 ignore_non_unported(trimmed)?;
+@@ -4210,7 +4210,7 @@ mod tests {
+     #[test]
+     fn trim_geom_default_drops_each_rail_curve_error_and_continues() {
+         let k = Kernel::default();
+-        assert!(!k.fixes.fillet_trim_status);
++        assert!(!k.fixes.hit_fillet_trim_status());
+         for failed in 0..4 {
+             let (mut fb, g, rails) = trim_test_geom();
+             fb.brep_mut().edge_mut(rails[failed]).unwrap().curve =
+diff --git a/crates/solidcore/src/blend/fillet_geom/p2.rs b/crates/solidcore/src/blend/fillet_geom/p2.rs
+index 2aba7fc6c..15bc50202 100644
+--- a/crates/solidcore/src/blend/fillet_geom/p2.rs
++++ b/crates/solidcore/src/blend/fillet_geom/p2.rs
+@@ -517,7 +517,7 @@ pub(crate) fn set_back_frame(
+ ) -> Result<(Point3, Point3)> {
+     let curve = edge::curve(target, e)?.ok_or_else(|| SolidError::null_pointer(op))?;
+     let owner_zone_tol_3d = Some(edge::tolerance(target, e)?);
+-    let pv = if k.fixes.fillet_setback_from_start_vertex {
++    let pv = if k.fixes.hit_fillet_setback_from_start_vertex() {
+         let ivl = edge::interval(target, e)?;
+         let from_start = edge::start_vertex(target, e)? == cp_vertex;
+         let (start, length) = if from_start {
+@@ -1710,7 +1710,7 @@ impl FilletBrep {
+                 // WR-300 (#1023): upstream's retry holds the radius at a corner not
+                 // calculated as constant radius too; the fix holds it only as the first
+                 // search did.
+-                let retry_si = if k.fixes.fillet_retry_radius_as_first
++                let retry_si = if k.fixes.hit_fillet_retry_radius_as_first()
+                     && !corners.corner(corner)?.is_calc_as_const_rad()
+                 {
+                     None
+diff --git a/crates/solidcore/src/blend/fillet_geom/p5.rs b/crates/solidcore/src/blend/fillet_geom/p5.rs
+index a545b8ec6..bcd379d9f 100644
+--- a/crates/solidcore/src/blend/fillet_geom/p5.rs
++++ b/crates/solidcore/src/blend/fillet_geom/p5.rs
+@@ -1343,7 +1343,7 @@ impl FilletBrep {
+         // bounds the end face and a face that is not the side face this edge runs in:
+         // its extension is where that side face meets the end face's extension
+         // (tangency-labs/smlib@d5ebcb3, WR-457).
+-        if k.fixes.fillet_nx1_tangent_side_edge {
++        if k.fixes.hit_fillet_nx1_tangent_side_edge() {
+             if let Some(side) = self.fillet_edge(e)?.original_face() {
+                 if !faces.contains(&side) {
+                     let mut end_face = None;
+diff --git a/crates/solidcore/src/blend/fillet_intersector.rs b/crates/solidcore/src/blend/fillet_intersector.rs
+index ba9645644..9a3841a42 100644
+--- a/crates/solidcore/src/blend/fillet_intersector.rs
++++ b/crates/solidcore/src/blend/fillet_intersector.rs
+@@ -1313,7 +1313,7 @@ impl<'s, 't, O: SolutionObject + 't, G: Clone> FilletIntersector<'s, 't, O, G> {
+ 
+         // (not upstream, `fixes.fillet_trace_rejects_short_step`, WR-503) a point far short of the
+         // step is another root of the equations, not the next point of this trace
+-        if k.fixes.fillet_trace_rejects_short_step
++        if k.fixes.hit_fillet_trace_rejects_short_step()
+             && !step.clipped
+             && tsect.crv_pos().distance(next_tsp.crv_pos()) < 0.5 * step_size.abs()
+         {
+diff --git a/crates/solidcore/src/blend/fillet_solver/p1.rs b/crates/solidcore/src/blend/fillet_solver/p1.rs
+index 24a508f0a..2ca49f53b 100644
+--- a/crates/solidcore/src/blend/fillet_solver/p1.rs
++++ b/crates/solidcore/src/blend/fillet_solver/p1.rs
+@@ -3226,8 +3226,8 @@ pub fn trim_rail(k: &Kernel, b: &mut Brep, rail: EdgeId, trim_interval: &Extent1
+     // callbacks owned by boxed trait objects) cannot be cloned and nothing on the trim
+     // path reads it
+     tk.rng = k.rng.clone();
+-    tk.fixes.bspline_trim_preserves_uv_spans = k.fixes.bspline_trim_preserves_uv_spans;
+-    tk.fixes.bspline_trim_keeps_rational_end_spans = k.fixes.bspline_trim_keeps_rational_end_spans;
++    tk.fixes.bspline_trim_preserves_uv_spans = k.fixes.hit_bspline_trim_preserves_uv_spans();
++    tk.fixes.bspline_trim_keeps_rational_end_spans = k.fixes.hit_bspline_trim_keeps_rational_end_spans();
+     b.edge_mut(rail)?
+         .curve
+         .as_mut()
+diff --git a/crates/solidcore/src/blend/fillet_solver/p2.rs b/crates/solidcore/src/blend/fillet_solver/p2.rs
+index 4a5634b20..01c713891 100644
+--- a/crates/solidcore/src/blend/fillet_solver/p2.rs
++++ b/crates/solidcore/src/blend/fillet_solver/p2.rs
+@@ -968,12 +968,12 @@ impl FilletSolver {
+         // Side effect: get circular arc RefFrame, Radius, StartAng, and EndAng.
+         let section = fsg_type(s)?;
+         let linear_section =
+-            k.fixes.fillet_chamfer_cone_on_arc && section == FilletSurfaceGeneratorType::Linear;
++            k.fixes.hit_fillet_chamfer_cone_on_arc() && section == FilletSurfaceGeneratorType::Linear;
+         // Not upstream (WR-581, #919), opt-in `fixes.fillet_blend_curve_revolved_on_arc`: a
+         // blend-curve section whose centre line is a point on the arc's axis (a blend as
+         // wide as the face it uses up, whose marched centre line has no length to march)
+         // is revolved too; any other blend-curve section is still refused here
+-        let blend_section = k.fixes.fillet_blend_curve_revolved_on_arc
++        let blend_section = k.fixes.hit_fillet_blend_curve_revolved_on_arc()
+             && section == FilletSurfaceGeneratorType::BlendCurve;
+         if section != FilletSurfaceGeneratorType::Circular && !linear_section && !blend_section {
+             return Err(sm_err());
+@@ -1029,7 +1029,7 @@ impl FilletSolver {
+         let unit_axis = ref_frame.z_axis().unitize()?;
+         let axis_pnt = ref_frame.origin();
+         let center_tol = ops.solver().approx_tol_3d;
+-        let center_on_axis = k.fixes.fillet_torus_center_on_axis && {
++        let center_on_axis = k.fixes.hit_fillet_torus_center_on_axis() && {
+             let off = arc_center - axis_pnt;
+             (off - unit_axis * off.dot(unit_axis)).length() < center_tol
+         };
+@@ -1046,7 +1046,7 @@ impl FilletSolver {
+         // `fixes.fillet_torus_rail_on_axis` (WR-592): a rail point within the tolerance of
+         // the axis turns round it in a circle smaller than the tolerance, a point: it is
+         // the axis's point, so the surface is exactly singular there.
+-        if k.fixes.fillet_torus_rail_on_axis {
++        if k.fixes.hit_fillet_torus_rail_on_axis() {
+             for rail_pnt in [&mut p0, &mut p1] {
+                 let off = *rail_pnt - axis_pnt;
+                 let on_axis = axis_pnt + unit_axis * off.dot(unit_axis);
+@@ -1147,7 +1147,7 @@ impl FilletSolver {
+         // turn from the start section to the end one; the start angle `IsArc` gives is
+         // measured from the arc's own frame (an `SmCircle`'s analytic domain, which need
+         // not start at 0), not from the start section, so it is no part of that turn
+-        let mut angle_span = if k.fixes.fillet_torus_span_from_start_section {
++        let mut angle_span = if k.fixes.hit_fillet_torus_span_from_start_section() {
+             end_ang
+         } else {
+             end_ang - start_ang
+@@ -1284,7 +1284,7 @@ impl FilletSolver {
+         // round is stored as its cylinder: the revolution's NURBS form (its
+         // `SmBSplineSurface::Copy`) through `CopyAndAddAnalytics`, kept when that gives a
+         // cone; anything else stays the revolution
+-        let torus = if linear_section && k.fixes.fillet_chamfer_cone_stored_as_cone {
++        let torus = if linear_section && k.fixes.hit_fillet_chamfer_cone_stored_as_cone() {
+             let cone = torus.base().copy().copy_and_add_analytics(k)?;
+             if matches!(cone.kind(), crate::surface::surface::SurfaceKind::Cone(_)) {
+                 cone
+@@ -1393,7 +1393,7 @@ impl FilletSolver {
+             return Err(sm_err());
+         }
+ 
+-        let (center, axes) = if k.fixes.fillet_corner_ball_center_from_axes {
++        let (center, axes) = if k.fixes.hit_fillet_corner_ball_center_from_axes() {
+             // Not upstream (WR-541, the fork's tangency-labs/smlib@bc6ddf9): the ball's
+             // centre is where the axes meet. Not the trace's points: at the edge's end where
+             // the contact circles meet both offset cylinders collapse onto their axes, so a
+@@ -1423,7 +1423,7 @@ impl FilletSolver {
+             (center, axes)
+         };
+         let mut turn_axis = axes[0].cross(axes[1]);
+-        if !k.fixes.fillet_corner_ball_center_from_axes && turn_axis.length() < EFF_ZERO_SQRT {
++        if !k.fixes.hit_fillet_corner_ball_center_from_axes() && turn_axis.length() < EFF_ZERO_SQRT {
+             return Err(sm_err()); // parallel cylinders: the centres fill a line, not this case
+         }
+         turn_axis = turn_axis.unitize()?;
+@@ -2440,8 +2440,8 @@ fn edge_zone_kernel(k: &Kernel, tol: f64) -> Kernel {
+         ..crate::kernel::KernelOptions::default()
+     });
+     tk.rng = k.rng.clone();
+-    tk.fixes.bspline_trim_preserves_uv_spans = k.fixes.bspline_trim_preserves_uv_spans;
+-    tk.fixes.bspline_trim_keeps_rational_end_spans = k.fixes.bspline_trim_keeps_rational_end_spans;
++    tk.fixes.bspline_trim_preserves_uv_spans = k.fixes.hit_bspline_trim_preserves_uv_spans();
++    tk.fixes.bspline_trim_keeps_rational_end_spans = k.fixes.hit_bspline_trim_keeps_rational_end_spans();
+     tk
+ }
+ 
+diff --git a/crates/solidcore/src/blend/fillet_solver/p3.rs b/crates/solidcore/src/blend/fillet_solver/p3.rs
+index 97396deaa..3904ba9a5 100644
+--- a/crates/solidcore/src/blend/fillet_solver/p3.rs
++++ b/crates/solidcore/src/blend/fillet_solver/p3.rs
+@@ -416,7 +416,7 @@ impl FilletSolver {
+                 )?;
+                 let interval = Extent1d::from_min_max(0.0, efo.target_distance * 10.0);
+                 let mut ls = LocalSolve1d::with_interval(interval, false);
+-                ls.set_failed_guess_no_sign_change(k.fixes.oscillating_skips_failed_guesses);
++                ls.set_failed_guess_no_sign_change(k.fixes.hit_oscillating_skips_failed_guesses());
+                 let mut radius_found = 0.0;
+ 
+                 // NewtonRaphson iteration for the radius whose boundary crossing has
+diff --git a/crates/solidcore/src/blend/fillet_solver/p4.rs b/crates/solidcore/src/blend/fillet_solver/p4.rs
+index 482f486ff..f730f7ebf 100644
+--- a/crates/solidcore/src/blend/fillet_solver/p4.rs
++++ b/crates/solidcore/src/blend/fillet_solver/p4.rs
+@@ -779,7 +779,7 @@ fn c1_collect_points(
+     // SolidCraft (tangency-labs/solidcore#1022, WR-468, opt-in): then from the edge's
+     // ends where a rail of geometry 0 ends on an extended edge
+     // ([`c1_extended_rail_end_knots`]).
+-    let extra_knots = if cx.k.fixes.fillet_through_extended_rail_end {
++    let extra_knots = if cx.k.fixes.hit_fillet_through_extended_rail_end() {
+         c1_extended_rail_end_knots(ops, cx, st)?
+     } else {
+         Vec::new()
+@@ -1903,7 +1903,7 @@ fn c3_try_analytic(
+ 
+     // WR-420 (fork addition, opt-in): where the centre line collapses to a point, the
+     // corner ball's patch
+-    if !cx.k.fixes.fillet_corner_ball_patch {
++    if !cx.k.fixes.hit_fillet_corner_ball_patch() {
+         return Ok(false);
+     }
+     let tsects = st.store.snapshot(cx.fillets, &st.tsect_pnts)?;
+@@ -3550,7 +3550,7 @@ fn c6_compute_point_values(
+         } else {
+             1.0e-5
+         };
+-        let mut step = if k.fixes.fillet_point_step_per_point {
++        let mut step = if k.fixes.hit_fillet_point_step_per_point() {
+             first
+         } else {
+             k.latch_fillet_point_step(first)
+@@ -3579,7 +3579,7 @@ fn c6_compute_point_values(
+         if !found_forw && step < 1.0e-4 {
+             let big_step = 1.0e-3;
+             let mut big = big_step;
+-            let retry_step = if k.fixes.fillet_point_bigger_step_retry {
++            let retry_step = if k.fixes.hit_fillet_point_bigger_step_retry() {
+                 &mut big
+             } else {
+                 &mut step
+diff --git a/crates/solidcore/src/blend/fillet_solver/p5.rs b/crates/solidcore/src/blend/fillet_solver/p5.rs
+index 5d05e6aa2..ffe87ffa5 100644
+--- a/crates/solidcore/src/blend/fillet_solver/p5.rs
++++ b/crates/solidcore/src/blend/fillet_solver/p5.rs
+@@ -270,7 +270,7 @@ impl FilletSolver {
+                 fillets.with_rail_classification(rail, |pseudo, cc| {
+                     context.classify(k, target, pseudo, face, cc)
+                 })?;
+-                if k.fixes.fillet_rail_rim_on_face {
++                if k.fixes.hit_fillet_rail_rim_on_face() {
+                     join_intervals_on_face(fillets, rail)?;
+                 }
+                 finish_classification(
+diff --git a/crates/solidcore/src/blend/fillet_standard_solver/p1.rs b/crates/solidcore/src/blend/fillet_standard_solver/p1.rs
+index cb52c0563..710b94328 100644
+--- a/crates/solidcore/src/blend/fillet_standard_solver/p1.rs
++++ b/crates/solidcore/src/blend/fillet_standard_solver/p1.rs
+@@ -614,7 +614,7 @@ pub fn constant_radius_from_edgeuse(
+     }
+ 
+     // Create offset surfaces of appropriate radius in appropriate direction.
+-    let ([eu0, eu1], orientations) = if k.fixes.fillet_knife_edge_rounds {
++    let ([eu0, eu1], orientations) = if k.fixes.hit_fillet_knife_edge_rounds() {
+         // (fork b7ec55b) offset each surface to the side of it the other face lies on
+         // (sm_SectorSides), a cusp's faces too
+         let radial = edgeuse::radial(brep, edgeuse)?;
+@@ -2555,7 +2555,7 @@ impl CircularCrossSectionFsg {
+         // from its own surface, and their ends differ by the model's accuracy, so the
+         // skinned surface came out close to singular there instead of exactly
+         // (tangency-labs/smlib@5fdefb9, WR-594).
+-        if k.fixes.fillet_rails_meet_at_one_end_point {
++        if k.fixes.hit_fillet_rails_meet_at_one_end_point() {
+             for end in 0..2 {
+                 let ivl = rail1.natural_interval();
+                 let t = if end == 0 { ivl.min() } else { ivl.max() };
+diff --git a/crates/solidcore/src/blend/fillet_standard_solver/p2.rs b/crates/solidcore/src/blend/fillet_standard_solver/p2.rs
+index 1c07841a2..390f6b677 100644
+--- a/crates/solidcore/src/blend/fillet_standard_solver/p2.rs
++++ b/crates/solidcore/src/blend/fillet_standard_solver/p2.rs
+@@ -1291,7 +1291,7 @@ impl ConstantDistanceFs {
+         // Create offset surfaces of appropriate radius in appropriate
+         // direction.  For now assume that the orientations at the center of the
+         // edge work for the rest of the edge.
+-        if k.fixes.fillet_knife_edge_rounds {
++        if k.fixes.hit_fillet_knife_edge_rounds() {
+             // (fork b7ec55b) offset each surface to the side of it the other face lies
+             // on (sm_SectorSides), a cusp's faces too
+             let mut cd = Self { solver, distance };
+@@ -1438,7 +1438,7 @@ impl VariableRadiusFs {
+         set_law_arc_length(k, &original, &law_interval, approx_tol_3d, &mut law)?;
+         curve_based.original = Some(original);
+ 
+-        if k.fixes.fillet_knife_edge_rounds {
++        if k.fixes.hit_fillet_knife_edge_rounds() {
+             // (fork b7ec55b) the law's radius at the middle first, then each surface
+             // offset to the side of it the other face lies on (sm_SectorSides), a cusp's
+             // faces too
+diff --git a/crates/solidcore/src/boolean/merge/p1.rs b/crates/solidcore/src/boolean/merge/p1.rs
+index 5265f77b0..789910fae 100644
+--- a/crates/solidcore/src/boolean/merge/p1.rs
++++ b/crates/solidcore/src/boolean/merge/p1.rs
+@@ -519,7 +519,7 @@ pub(crate) fn boolean_post_process_with_notifications(
+     let mut endpoints = Vec::new();
+     // WR-304: the edges checked so far, and those the merging below left with one face
+     // on both sides (checked too, though they are no intersection edges).
+-    let slits = k.fixes.boolean_cleanup_removes_slits;
++    let slits = k.fixes.hit_boolean_cleanup_removes_slits();
+     let mut queued: BTreeSet<EdgeId> = if slits {
+         edges.iter().copied().collect()
+     } else {
+diff --git a/crates/solidcore/src/boolean/merge/p2.rs b/crates/solidcore/src/boolean/merge/p2.rs
+index de0604a54..3e23f8119 100644
+--- a/crates/solidcore/src/boolean/merge/p2.rs
++++ b/crates/solidcore/src/boolean/merge/p2.rs
+@@ -932,7 +932,7 @@ pub fn make_faceuse_attempt_with(
+ 
+     // Not upstream (tangency-labs/solidcore#488; opt-in): MakeFace does not take the
+     // other face's UV trims over; carry the exact ones across
+-    if ctx.kernel().fixes.keep_operand_uv_trims {
++    if ctx.kernel().fixes.hit_keep_operand_uv_trims() {
+         copy_uv_trim_curves_of_other_face(ctx.kernel(), brep, other, faceuse, new_face, relations)?;
+     }
+     let (source, dest) = (
+diff --git a/crates/solidcore/src/boolean/merge/p3.rs b/crates/solidcore/src/boolean/merge/p3.rs
+index b9f5a9bb9..3d58348a9 100644
+--- a/crates/solidcore/src/boolean/merge/p3.rs
++++ b/crates/solidcore/src/boolean/merge/p3.rs
+@@ -903,7 +903,7 @@ fn create_face_from_base_sliced_surface(
+ /// base-sliced input never makes a face), so the output copies are virtual copies too;
+ /// upstream's sliced output copies would carry no geometry.
+ fn copy_list_surface(k: &Kernel, surface: &Surface) -> Result<Surface> {
+-    if k.fixes.boolean_lists_virtual_surface_copies {
++    if k.fixes.hit_boolean_lists_virtual_surface_copies() {
+         surface.copy(k)
+     } else {
+         Err(SolidError::invalid_input(
+@@ -1014,7 +1014,7 @@ fn list_operand(k: &mut Kernel, breps: &[Brep], surfaces: &[Surface]) -> Result<
+         for source in surfaces {
+             // Upstream records ONLY the last surface's kind ("we hope they are all the
+             // same").
+-            planar = if k.fixes.boolean_lists_virtual_surface_copies {
++            planar = if k.fixes.hit_boolean_lists_virtual_surface_copies() {
+                 // the virtual Copy: the derived surface, its natural domain and its kind
+                 let copy = source.copy(k)?;
+                 let is_plane = copy.is_kind_of(PLANE_TYPE)?;
+diff --git a/crates/solidcore/src/boolean/merge/p4.rs b/crates/solidcore/src/boolean/merge/p4.rs
+index c61bf9433..20925d6d4 100644
+--- a/crates/solidcore/src/boolean/merge/p4.rs
++++ b/crates/solidcore/src/boolean/merge/p4.rs
+@@ -660,7 +660,7 @@ fn classify_edge_faces(
+             // the coincident faceuses point the same way (FindRadialSector): when the
+             // primary face bounds material, its faceuse faces it if its region is solid
+             let slice_same = if operation == BooleanOperation::Slice
+-                && kernels.primary.fixes.slice_coincident_faces_sheet_side
++                && kernels.primary.fixes.hit_slice_coincident_faces_sheet_side()
+             {
+                 let solid = void(primary, pf_regions.0)? == 0;
+                 if solid == (void(primary, pf_regions.1)? == 0) {
+@@ -1187,7 +1187,7 @@ fn put_outer_shells_first(
+     primary: &mut Brep,
+     operation: BooleanOperation,
+ ) -> Result<()> {
+-    if !kernels.primary.fixes.boolean_outer_shell_first
++    if !kernels.primary.fixes.hit_boolean_outer_shell_first()
+         || !matches!(
+             operation,
+             BooleanOperation::Union | BooleanOperation::Difference | BooleanOperation::Intersection
+@@ -1686,7 +1686,7 @@ fn manifold_boolean_translated(
+     // joined only through them are split (the fork's `RemoveSlitLoopsWhereSolidsTouch`
+     // before `rpResult = m_vTI.m_pBrep`). The destroyed edge uses notify on call-local
+     // records under their type code and arena index.
+-    if kernels.primary.fixes.remove_slit_loops_where_solids_touch
++    if kernels.primary.fixes.hit_remove_slit_loops_where_solids_touch()
+         && matches!(
+             operation,
+             BooleanOperation::Union | BooleanOperation::Intersection | BooleanOperation::Difference
+diff --git a/crates/solidcore/src/boolean/topology_intersector/p1.rs b/crates/solidcore/src/boolean/topology_intersector/p1.rs
+index c88a7eca6..cede216ea 100644
+--- a/crates/solidcore/src/boolean/topology_intersector/p1.rs
++++ b/crates/solidcore/src/boolean/topology_intersector/p1.rs
+@@ -2062,7 +2062,7 @@ impl<O: ClassObject + SolutionObject + Ord> TopologyIntersector<O> {
+         // point. Fit each such vertex to its edges, as CombineCoincidentVertices does when
+         // it squeezes a short edge away. Its two vertices, one in each B-rep, will be
+         // related as one, so each tolerance also covers the other's.
+-        if k.fixes.degenerate_proto_edge_in_one_vertex {
++        if k.fixes.hit_degenerate_proto_edge_in_one_vertex() {
+             let pvs = mgr.proto_vertices().to_vec();
+             for pv in pvs {
+                 let proto_vertex = mgr
+diff --git a/crates/solidcore/src/boolean/topology_intersector/p2.rs b/crates/solidcore/src/boolean/topology_intersector/p2.rs
+index db372b804..ac77941e0 100644
+--- a/crates/solidcore/src/boolean/topology_intersector/p2.rs
++++ b/crates/solidcore/src/boolean/topology_intersector/p2.rs
+@@ -1215,7 +1215,7 @@ impl<O: ClassObject + SolutionObject + Ord> TopologyIntersector<O> {
+         // Not upstream unless opted in (`Kernel::fixes.proto_edge_self_loop_on_vertex_degenerate`,
+         // WR-214, tangency-labs/solidcore#480): a self-loop proto edge on a vertex is
+         // dropped, not split onto that vertex. Off (the default), upstream's split.
+-        mgr.set_split_self_loops_on_vertices(!k.fixes.proto_edge_self_loop_on_vertex_degenerate);
++        mgr.set_split_self_loops_on_vertices(!k.fixes.hit_proto_edge_self_loop_on_vertex_degenerate());
+         self.proto_topo_mgr = Some(mgr);
+ 
+         // Intersect Topology; if that didn't work, quit before we mess up the Breps.
+@@ -1358,7 +1358,7 @@ impl<O: ClassObject + SolutionObject + Ord> TopologyIntersector<O> {
+                 })
+                 .collect()
+         };
+-        let skip_apart = k.fixes.boolean_skips_faces_apart;
++        let skip_apart = k.fixes.hit_boolean_skips_faces_apart();
+         let (boxes1, boxes2) = if skip_apart {
+             (face_boxes(&faces1), face_boxes(&faces2))
+         } else {
+diff --git a/crates/solidcore/src/curve/curve/p1.rs b/crates/solidcore/src/curve/curve/p1.rs
+index 60c2da8df..d37363827 100644
+--- a/crates/solidcore/src/curve/curve/p1.rs
++++ b/crates/solidcore/src/curve/curve/p1.rs
+@@ -256,7 +256,7 @@ where
+                     // Not upstream (WR-383, tangency-labs/solidcore#527): with the
+                     // opt-in, an end is judged by its distance from 1 (the fraction is
+                     // measured from the solution's start); upstream tests |frac| at both
+-                    if at_end && k.fixes.refine_cc_range_ends {
++                    if at_end && k.fixes.hit_refine_cc_range_ends() {
+                         frac1 = 1.0 - frac1;
+                         frac2 = 1.0 - frac2;
+                     }
+diff --git a/crates/solidcore/src/curve/curve/p2.rs b/crates/solidcore/src/curve/curve/p2.rs
+index 8ea64f955..6fb9a8d96 100644
+--- a/crates/solidcore/src/curve/curve/p2.rs
++++ b/crates/solidcore/src/curve/curve/p2.rs
+@@ -2450,7 +2450,7 @@ where
+         &eval_right,
+         continuity_angle_tol,
+         &ContinuityOptions {
+-            geometric_g2: k.fixes.geometric_g2_continuity,
++            geometric_g2: k.fixes.hit_geometric_g2_continuity(),
+         },
+     )?;
+ 
+diff --git a/crates/solidcore/src/curve/curve/p3.rs b/crates/solidcore/src/curve/curve/p3.rs
+index 585ab22e4..f547e8878 100644
+--- a/crates/solidcore/src/curve/curve/p3.rs
++++ b/crates/solidcore/src/curve/curve/p3.rs
+@@ -1150,7 +1150,7 @@ impl Curve {
+             op,
+         );
+         let mut ls = LocalSolve1d::with_interval(*interval, false);
+-        ls.set_failed_guess_no_sign_change(k.fixes.oscillating_skips_failed_guesses);
++        ls.set_failed_guess_no_sign_change(k.fixes.hit_oscillating_skips_failed_guesses());
+         // acceptable accuracy when Func(t) < tolerance
+         let r = match ls.solve_it(&mut efo, guess, 1.0e-8) {
+             Ok(r) => r,
+diff --git a/crates/solidcore/src/curve/curve/p5.rs b/crates/solidcore/src/curve/curve/p5.rs
+index 435be3aa6..11bb1725a 100644
+--- a/crates/solidcore/src/curve/curve/p5.rs
++++ b/crates/solidcore/src/curve/curve/p5.rs
+@@ -1822,7 +1822,7 @@ pub fn local_property_analysis<C: CurveEvaluate + ?Sized, O: Copy>(
+     let mut ls = LocalSolve1d::with_interval(*interval, set_periodic);
+     // Not upstream (WR-253, tangency-labs/solidcore#481): opt-in, a failed evaluation
+     // (e.g. the radius of curvature of a straight piece) is no sign change
+-    ls.set_failed_guess_no_sign_change(k.fixes.oscillating_skips_failed_guesses);
++    ls.set_failed_guess_no_sign_change(k.fixes.hit_oscillating_skips_failed_guesses());
+ 
+     // select the solver and the desired accuracy.
+     if property == CurvePropertyType::MinimizeFirstDerivative
+@@ -2880,7 +2880,7 @@ mod tests {
+     #[test]
+     fn oscillating_failed_guess_is_a_root_by_default() {
+         let k = Kernel::default();
+-        assert!(!k.fixes.oscillating_skips_failed_guesses);
++        assert!(!k.fixes.hit_oscillating_skips_failed_guesses());
+         let (found, t, value) = perpendicular_on_stalled_quartic(&k, STALL_AT_LAST_GUESS).unwrap();
+         assert!(found);
+         assert_eq!(t.to_bits(), STALL_AT_LAST_GUESS.to_bits());
+diff --git a/crates/solidcore/src/curve/curve/p8.rs b/crates/solidcore/src/curve/curve/p8.rs
+index a681af73a..733856c84 100644
+--- a/crates/solidcore/src/curve/curve/p8.rs
++++ b/crates/solidcore/src/curve/curve/p8.rs
+@@ -950,7 +950,7 @@ impl Curve {
+ 
+         // Refine Range solutions.
+         refine(k, &mut sols, &named)?;
+-        if k.fixes.curve_contacts_at_curve_ends {
++        if k.fixes.hit_curve_contacts_at_curve_ends() {
+             move_contacts_to_curve_ends(
+                 k,
+                 self,
+diff --git a/crates/solidcore/src/curve/curve/p9.rs b/crates/solidcore/src/curve/curve/p9.rs
+index adda3a307..db8e326f3 100644
+--- a/crates/solidcore/src/curve/curve/p9.rs
++++ b/crates/solidcore/src/curve/curve/p9.rs
+@@ -1563,7 +1563,7 @@ impl Curve {
+                 let low = continuities
+                     .get(i)
+                     .is_some_and(|&c| ord(c) <= ord(ContinuityType::C1));
+-                let add = if k.fixes.curve_tight_box_interval_knots {
++                let add = if k.fixes.hit_curve_tight_box_interval_knots() {
+                     // WR-474 (#1054): only the tangent discontinuous knots strictly inside
+                     // the interval; its ends are in the box already, and a knot outside it
+                     // is a point the curve never reaches over `interval`.
+diff --git a/crates/solidcore/src/curve/curve_cache.rs b/crates/solidcore/src/curve/curve_cache.rs
+index 852d9744a..948476f53 100644
+--- a/crates/solidcore/src/curve/curve_cache.rs
++++ b/crates/solidcore/src/curve/curve_cache.rs
+@@ -1400,7 +1400,7 @@ pub fn compute_constants(
+ 
+     let mut efo = FindCurveDistanceExtrema::new(k, bez, original, interval, 10.0 * EFF_ZERO);
+     let mut solver = LocalSolve1d::with_interval(interval, false);
+-    solver.set_failed_guess_no_sign_change(k.fixes.oscillating_skips_failed_guesses);
++    solver.set_failed_guess_no_sign_change(k.fixes.hit_oscillating_skips_failed_guesses());
+ 
+     // Step along the curve: when the function changes sign, call the local solver.
+     let num_steps = 20u32;
+diff --git a/crates/solidcore/src/curve/ellipse/p1.rs b/crates/solidcore/src/curve/ellipse/p1.rs
+index 10855d7bf..5ec8bd7c1 100644
+--- a/crates/solidcore/src/curve/ellipse/p1.rs
++++ b/crates/solidcore/src/curve/ellipse/p1.rs
+@@ -1923,7 +1923,7 @@ impl Ellipse {
+         let step_t1 = new_interval.max();
+ 
+         // After these calls, the conversion may not be reciprocal.
+-        let (nurbs_t0, nurbs_t1) = if k.fixes.ellipse_adjust_step_interval_keeps_turns {
++        let (nurbs_t0, nurbs_t1) = if k.fixes.hit_ellipse_adjust_step_interval_keeps_turns() {
+             (
+                 self.step_to_nurbs_keeping_turns(k, step_t0)?,
+                 self.step_to_nurbs_keeping_turns(k, step_t1)?,
+diff --git a/crates/solidcore/src/heal/face_props.rs b/crates/solidcore/src/heal/face_props.rs
+index 5d872ec83..34beb5aa3 100644
+--- a/crates/solidcore/src/heal/face_props.rs
++++ b/crates/solidcore/src/heal/face_props.rs
+@@ -2257,7 +2257,7 @@ impl<O: LoopObject> FaceProps<O> {
+         cache: &mut CurveOnClassifyCache,
+     ) -> Result<()> {
+         let result = self.set_props_stage3_inner(k, b, face, face_index, exe_heal_op, cache);
+-        if k.fixes.heal_stage3_failures_propagate
++        if k.fixes.hit_heal_stage3_failures_propagate()
+             && result.is_err()
+             && self.prop_stage == PropStage::Stage3A
+         {
+@@ -2332,7 +2332,7 @@ impl<O: LoopObject> FaceProps<O> {
+             self,
+             cache,
+         );
+-        let fix = k.fixes.heal_stage3_failures_propagate;
++        let fix = k.fixes.hit_heal_stage3_failures_propagate();
+         let classify_status = if fix {
+             classify_result.map(Some)
+         } else {
+diff --git a/crates/solidcore/src/heal/stitch/p2.rs b/crates/solidcore/src/heal/stitch/p2.rs
+index a48fa1bd0..55a076d29 100644
+--- a/crates/solidcore/src/heal/stitch/p2.rs
++++ b/crates/solidcore/src/heal/stitch/p2.rs
+@@ -1401,7 +1401,7 @@ pub(crate) fn stitch_into_solid_with(
+         // shells solid, each shell where the glue put it. A solid is a nested solid model:
+         // inside the outer shell is material, inside a shell within it a void, and so on,
+         // each region's outer shell first.
+-        if k.fixes.stitch_solid_nests_cavities {
++        if k.fixes.hit_stitch_solid_nests_cavities() {
+             let old = b.editing_enabled();
+             b.set_editing_enabled(false);
+             let r = find_and_set_infinite_region(k, b, None, SetRegionVoidType::NestedSolid, None);
+diff --git a/crates/solidcore/src/intersect/adv_surface_intersector.rs b/crates/solidcore/src/intersect/adv_surface_intersector.rs
+index 16687c1a8..9060f879c 100644
+--- a/crates/solidcore/src/intersect/adv_surface_intersector.rs
++++ b/crates/solidcore/src/intersect/adv_surface_intersector.rs
+@@ -592,7 +592,7 @@ impl<'s, 't, O: SolutionObject + 't> AdvSurfaceIntersector<'s, 't, O> {
+                 if angle_rad * (180.0 / PI) < 5.0 {
+                     self.push_tangent_seed(k, &mut tangent_seeds, node1, node2)?;
+                     // (WR-75, opt-in) a seed of the tangential curve pass
+-                    if k.fixes.ssi_tangent_curve_tracer {
++                    if k.fixes.hit_ssi_tangent_curve_tracer() {
+                         self.tangent_curve_seeds.push([uv_guess1, uv_guess2]);
+                     }
+                     continue;
+@@ -636,7 +636,7 @@ impl<'s, 't, O: SolutionObject + 't> AdvSurfaceIntersector<'s, 't, O> {
+                 if angle_rad * (180.0 / PI) < 2.0 {
+                     self.push_tangent_seed(k, &mut tangent_seeds, node1, node2)?;
+                     // (WR-75, opt-in) a seed of the tangential curve pass
+-                    if k.fixes.ssi_tangent_curve_tracer {
++                    if k.fixes.hit_ssi_tangent_curve_tracer() {
+                         self.tangent_curve_seeds.push([uv, uv2]);
+                     }
+                     continue;
+@@ -690,7 +690,7 @@ impl<'s, 't, O: SolutionObject + 't> AdvSurfaceIntersector<'s, 't, O> {
+         }
+ 
+         // Opt-in (WR-74, #394): isolated tangential contact points
+-        if k.fixes.ssi_tangent_contact_points && !self.base.doing_self_intersection {
++        if k.fixes.hit_ssi_tangent_contact_points() && !self.base.doing_self_intersection {
+             tangent_contacts::find_tangent_contact_points(
+                 k,
+                 &self.base,
+@@ -713,7 +713,7 @@ impl<'s, 't, O: SolutionObject + 't> AdvSurfaceIntersector<'s, 't, O> {
+         node1: Option<NodeId>,
+         node2: Option<NodeId>,
+     ) -> Result<()> {
+-        if k.fixes.ssi_tangent_contact_points {
++        if k.fixes.hit_ssi_tangent_contact_points() {
+             seeds.push([
+                 *self.patch(0, node1)?.aux.uv_domain(),
+                 *self.patch(1, node2)?.aux.uv_domain(),
+@@ -1870,7 +1870,7 @@ mod tests {
+         assert!((off.1 - outside).length() < 1e-6, "upstream: {:?}", off.1);
+ 
+         let mut k = Kernel::default();
+-        assert!(!k.fixes.ssi_singular_start_inside_direction);
++        assert!(!k.fixes.hit_ssi_singular_start_inside_direction());
+         k.fixes.ssi_singular_start_inside_direction = true;
+         let on = singular_start(&k, domain1, inside);
+         assert_eq!(on.0, IntersectionPointType::Singularity);
+diff --git a/crates/solidcore/src/intersect/point_class.rs b/crates/solidcore/src/intersect/point_class.rs
+index 8c39f5f3e..29b85c5d9 100644
+--- a/crates/solidcore/src/intersect/point_class.rs
++++ b/crates/solidcore/src/intersect/point_class.rs
+@@ -1347,7 +1347,7 @@ impl<O: ClassObject> PointClassification<O> {
+             let mut solutions =
+                 access.global_point_solve(k, target, &uv_domain, point, self.src_zone_tol_3d)?;
+             // not upstream (WR-537, opt-in): solutions that are one point are one
+-            if k.fixes.seam_point_solutions_are_one {
++            if k.fixes.hit_seam_point_solutions_are_one() {
+                 one_point(
+                     k,
+                     access.geometry(),
+@@ -1367,7 +1367,7 @@ impl<O: ClassObject> PointClassification<O> {
+                     point,
+                     zone_tol3d(k, self.src_zone_tol_3d * 100.0),
+                 )?;
+-                if k.fixes.seam_point_solutions_are_one {
++                if k.fixes.hit_seam_point_solutions_are_one() {
+                     one_point(
+                         k,
+                         access.geometry(),
+diff --git a/crates/solidcore/src/intersect/surface_intersector/p1.rs b/crates/solidcore/src/intersect/surface_intersector/p1.rs
+index dc1298135..42e0a6178 100644
+--- a/crates/solidcore/src/intersect/surface_intersector/p1.rs
++++ b/crates/solidcore/src/intersect/surface_intersector/p1.rs
+@@ -734,7 +734,7 @@ impl<'s> SurfaceIntersector<'s> {
+             curve_points: Vec::new(),
+             start_points: Vec::new(),
+             through_points: Vec::new(),
+-            singular_start_inside_direction: k.fixes.ssi_singular_start_inside_direction,
++            singular_start_inside_direction: k.fixes.hit_ssi_singular_start_inside_direction(),
+             advanced: false,
+         })
+     }
+@@ -922,7 +922,7 @@ impl<'s> SurfaceIntersector<'s> {
+         // (`ComputePointValues`), so it is exact; copying the other point's tangent over
+         // it bent the fitted span into the pole. Only the surface derivatives are taken
+         // from the stepped-back point.
+-        if !k.fixes.ssi_pole_point_keeps_its_tangent {
++        if !k.fixes.hit_ssi_pole_point_keeps_its_tangent() {
+             if step_off_current {
+                 curr.curve_pv[1] = prev.crv_deriv();
+             } else {
+@@ -1182,7 +1182,7 @@ impl<'s> SurfaceIntersector<'s> {
+ 
+         // opt-in fix (WR-76, #392): keep one start point per tangent cluster, the
+         // tangent-curve point with the smallest deviation
+-        if k.fixes.ssi_trace_tangent_curves_once && start.point_type.is_tangent_type() {
++        if k.fixes.hit_ssi_trace_tangent_curves_once() && start.point_type.is_tangent_type() {
+             for i in 0..self.start_points.len() {
+                 let Some(&tid) = self.start_points.get(i) else {
+                     break;
+diff --git a/crates/solidcore/src/intersect/surface_intersector/p4.rs b/crates/solidcore/src/intersect/surface_intersector/p4.rs
+index bfa6b2618..b871d45de 100644
+--- a/crates/solidcore/src/intersect/surface_intersector/p4.rs
++++ b/crates/solidcore/src/intersect/surface_intersector/p4.rs
+@@ -709,7 +709,7 @@ impl SurfaceIntersector<'_> {
+             // an open curve from an unbounded point, not reversed by the trace: trace
+             // the other way too
+             // (opt-in, WR-80: nothing traced, nothing to reverse)
+-            let traced = !k.fixes.ssi_no_reverse_of_empty_trace || !self.curve_points.is_empty();
++            let traced = !k.fixes.hit_ssi_no_reverse_of_empty_trace() || !self.curve_points.is_empty();
+             if traced
+                 && !self.curve_is_closed
+                 && !self.point(start)?.is_bounded()
+@@ -1114,7 +1114,7 @@ pub fn trace_curve_with<'s, V: IntersectorVirtuals<'s> + ?Sized>(
+         // has run onto the free end of an already traced curve is the same tangent
+         // curve, whose earlier trace stopped part way; stop here so the two traces
+         // meet instead of the second retracing the first
+-        if k.fixes.ssi_trace_tangent_curves_once
++        if k.fixes.hit_ssi_trace_tangent_curves_once()
+             && stop_at_found_curve_end(v, k, start, tsp, curves_3d, uv_tol)?
+         {
+             break;
+@@ -1177,7 +1177,7 @@ pub fn trace_curve_with<'s, V: IntersectorVirtuals<'s> + ?Sized>(
+         trace_test(v, k, next, &mut done)?;
+         if done || v.intersector().point(next)?.curve_parameter != last_curve_param {
+             // opt-in fix (WR-76, #392): don't retrace an already found curve
+-            if k.fixes.ssi_trace_tangent_curves_once
++            if k.fixes.hit_ssi_trace_tangent_curves_once()
+                 && point_count == 0
+                 && v.intersector()
+                     .span_on_found_curve(k, tsp, next, curves_3d)?
+@@ -1232,7 +1232,7 @@ pub fn trace_curve_with<'s, V: IntersectorVirtuals<'s> + ?Sized>(
+                     if done {
+                         // opt-in fix (WR-76, #392): don't retrace an already found
+                         // curve
+-                        if k.fixes.ssi_trace_tangent_curves_once
++                        if k.fixes.hit_ssi_trace_tangent_curves_once()
+                             && point_count == 0
+                             && v.intersector()
+                                 .span_on_found_curve(k, tsp, next, curves_3d)?
+diff --git a/crates/solidcore/src/intersect/surface_intersector/p5.rs b/crates/solidcore/src/intersect/surface_intersector/p5.rs
+index 87c2bca25..a27f4edb7 100644
+--- a/crates/solidcore/src/intersect/surface_intersector/p5.rs
++++ b/crates/solidcore/src/intersect/surface_intersector/p5.rs
+@@ -703,7 +703,7 @@ impl<'t, O: SolutionObject + Copy + PartialEq + 't> AdvSurfaceIntersector<'_, 't
+                 // found curve, has nothing to trace back from; upstream reverses the empty
+                 // list and fails with SM_ERR_NULL_POINTER)
+                 let traced =
+-                    !k.fixes.ssi_no_reverse_of_empty_trace || !self.base.curve_points.is_empty();
++                    !k.fixes.hit_ssi_no_reverse_of_empty_trace() || !self.base.curve_points.is_empty();
+                 if traced
+                     && !self.base.curve_is_closed
+                     && input_trace_direction == self.base.curve_trace_direction
+@@ -723,7 +723,7 @@ impl<'t, O: SolutionObject + Copy + PartialEq + 't> AdvSurfaceIntersector<'_, 't
+                 // opt-in fix (WR-76, #392): a traced curve that ends on a boundary
+                 // inside a tangential contact consumes the start points of that
+                 // contact's boundary cluster
+-                if k.fixes.ssi_trace_tangent_curves_once {
++                if k.fixes.hit_ssi_trace_tangent_curves_once() {
+                     self.base.remove_end_tangent_clusters(k)?;
+                 }
+ 
+@@ -751,7 +751,7 @@ impl<'t, O: SolutionObject + Copy + PartialEq + 't> AdvSurfaceIntersector<'_, 't
+         // not upstream (WR-75, opt-in; the fork's FindTangentCurves): trace the
+         // tangential curves the marcher above cannot follow
+         let mut tangent_nodes = Vec::new();
+-        if k.fixes.ssi_tangent_curve_tracer {
++        if k.fixes.hit_ssi_tangent_curve_tracer() {
+             let size = crate::math::min2(root1.size().length(), root2.size().length());
+             let seeds = core::mem::take(&mut self.tangent_curve_seeds);
+             let mut curves = TsectCurves {
+@@ -826,7 +826,7 @@ impl<'t, O: SolutionObject + Copy + PartialEq + 't> AdvSurfaceIntersector<'_, 't
+ 
+         // not upstream (WR-75, opt-in; the fork's AddTangentNodes): report the singular
+         // points where crossing branches meet
+-        if k.fixes.ssi_tangent_curve_tracer {
++        if k.fixes.hit_ssi_tangent_curve_tracer() {
+             super::tangent_curves::add_tangent_nodes(
+                 k,
+                 &self.base,
+diff --git a/crates/solidcore/src/intersect/surface_silhouette.rs b/crates/solidcore/src/intersect/surface_silhouette.rs
+index 5df12b0d1..b3fa6f0df 100644
+--- a/crates/solidcore/src/intersect/surface_silhouette.rs
++++ b/crates/solidcore/src/intersect/surface_silhouette.rs
+@@ -471,7 +471,7 @@ impl<'s> SurfaceSilhouette<'s> {
+                     );
+                     let ivl = Extent1d::from_min_max(0.0, 1.0);
+                     let mut ls = LocalSolve1d::with_interval(ivl, false);
+-                    ls.set_failed_guess_no_sign_change(k.fixes.oscillating_skips_failed_guesses);
++                    ls.set_failed_guess_no_sign_change(k.fixes.hit_oscillating_skips_failed_guesses());
+                     match ls.solve_it(&mut efo, 0.5, 1.0e-8) {
+                         Err(e) if e.is_unported() => return Err(e),
+                         Err(_) => {}
+@@ -551,7 +551,7 @@ impl<'s> SurfaceSilhouette<'s> {
+                     );
+                     let mut ivl = Extent1d::from_min_max(-5.0, 5.0);
+                     let mut ls = LocalSolve1d::with_interval(ivl, false);
+-                    ls.set_failed_guess_no_sign_change(k.fixes.oscillating_skips_failed_guesses);
++                    ls.set_failed_guess_no_sign_change(k.fixes.hit_oscillating_skips_failed_guesses());
+                     // Guess param: linearly interpolate between PrevDot (at t==0) and
+                     // CurrDot (at t==1) to where Dot would be zero.
+                     let mut guess_t = 0.5; // in case we can't get a guess
+diff --git a/crates/solidcore/src/kernel.rs b/crates/solidcore/src/kernel.rs
+index 7085a93f5..37efc3fbe 100644
+--- a/crates/solidcore/src/kernel.rs
++++ b/crates/solidcore/src/kernel.rs
+@@ -640,3 +640,191 @@ mod tests {
+         k1.caches.clear();
+     }
+ }
++
++// FLAGHIT instrumentation (temporary, never commit)
++#[doc(hidden)]
++#[allow(missing_docs, clippy::all)]
++pub fn __flaghit(name: &'static str) -> bool {
++    use std::collections::BTreeSet;
++    use std::sync::{Mutex, OnceLock};
++    static SEEN: OnceLock<Mutex<BTreeSet<(String, &'static str)>>> = OnceLock::new();
++    static OFF: OnceLock<Option<String>> = OnceLock::new();
++    let forced = OFF.get_or_init(|| std::env::var("FLAGHIT_FORCE_OFF").ok()).as_deref() == Some(name);
++    let t = std::thread::current().name().unwrap_or("?").to_string();
++    static TAG: OnceLock<String> = OnceLock::new();
++    let tag = TAG.get_or_init(|| std::env::var("FLAGHIT_TAG").unwrap_or_default());
++    let key = format!("{tag}|{t}");
++    let m = SEEN.get_or_init(|| Mutex::new(BTreeSet::new()));
++    let new = match m.lock() { Ok(mut s) => s.insert((key, name)), Err(e) => e.into_inner().insert((format!("{tag}|{t}"), name)) };
++    if new {
++        if let Ok(p) = std::env::var("FLAGHIT_LOG") {
++            use std::io::Write;
++            let exe = std::env::current_exe().ok().and_then(|e| e.file_name().map(|s| s.to_string_lossy().into_owned())).unwrap_or_default();
++            if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(p) {
++                let _ = writeln!(f, "{name}\t{exe}\t{tag}\t{t}");
++            }
++        }
++    }
++    forced
++}
++#[allow(missing_docs, clippy::all)]
++impl UpstreamFixes {
++    #[inline] pub fn hit_fillet_trim_status(&self) -> bool { if self.fillet_trim_status { if __flaghit("fillet_trim_status") { return false; } } self.fillet_trim_status }
++    #[inline] pub fn hit_fillet_retry_radius_as_first(&self) -> bool { if self.fillet_retry_radius_as_first { if __flaghit("fillet_retry_radius_as_first") { return false; } } self.fillet_retry_radius_as_first }
++    #[inline] pub fn hit_fillet_rail_rim_on_face(&self) -> bool { if self.fillet_rail_rim_on_face { if __flaghit("fillet_rail_rim_on_face") { return false; } } self.fillet_rail_rim_on_face }
++    #[inline] pub fn hit_fillet_refuse_rails_leaving_faces(&self) -> bool { if self.fillet_refuse_rails_leaving_faces { if __flaghit("fillet_refuse_rails_leaving_faces") { return false; } } self.fillet_refuse_rails_leaving_faces }
++    #[inline] pub fn hit_fillet_refuse_face_consuming_blends(&self) -> bool { if self.fillet_refuse_face_consuming_blends { if __flaghit("fillet_refuse_face_consuming_blends") { return false; } } self.fillet_refuse_face_consuming_blends }
++    #[inline] pub fn hit_fillet_refuse_overlapping_bands(&self) -> bool { if self.fillet_refuse_overlapping_bands { if __flaghit("fillet_refuse_overlapping_bands") { return false; } } self.fillet_refuse_overlapping_bands }
++    #[inline] pub fn hit_fillet_refuse_non_manifold_result(&self) -> bool { if self.fillet_refuse_non_manifold_result { if __flaghit("fillet_refuse_non_manifold_result") { return false; } } self.fillet_refuse_non_manifold_result }
++    #[inline] pub fn hit_fillet_refuse_crossing_rails(&self) -> bool { if self.fillet_refuse_crossing_rails { if __flaghit("fillet_refuse_crossing_rails") { return false; } } self.fillet_refuse_crossing_rails }
++    #[inline] pub fn hit_fillet_vertex_error_diagnostics(&self) -> bool { if self.fillet_vertex_error_diagnostics { if __flaghit("fillet_vertex_error_diagnostics") { return false; } } self.fillet_vertex_error_diagnostics }
++    #[inline] pub fn hit_fillet_corner_ball_patch(&self) -> bool { if self.fillet_corner_ball_patch { if __flaghit("fillet_corner_ball_patch") { return false; } } self.fillet_corner_ball_patch }
++    #[inline] pub fn hit_fillet_corner_ball_center_from_axes(&self) -> bool { if self.fillet_corner_ball_center_from_axes { if __flaghit("fillet_corner_ball_center_from_axes") { return false; } } self.fillet_corner_ball_center_from_axes }
++    #[inline] pub fn hit_fillet_torus_span_from_start_section(&self) -> bool { if self.fillet_torus_span_from_start_section { if __flaghit("fillet_torus_span_from_start_section") { return false; } } self.fillet_torus_span_from_start_section }
++    #[inline] pub fn hit_fillet_chamfer_cone_on_arc(&self) -> bool { if self.fillet_chamfer_cone_on_arc { if __flaghit("fillet_chamfer_cone_on_arc") { return false; } } self.fillet_chamfer_cone_on_arc }
++    #[inline] pub fn hit_fillet_chamfer_cone_stored_as_cone(&self) -> bool { if self.fillet_chamfer_cone_stored_as_cone { if __flaghit("fillet_chamfer_cone_stored_as_cone") { return false; } } self.fillet_chamfer_cone_stored_as_cone }
++    #[inline] pub fn hit_fillet_blend_curve_revolved_on_arc(&self) -> bool { if self.fillet_blend_curve_revolved_on_arc { if __flaghit("fillet_blend_curve_revolved_on_arc") { return false; } } self.fillet_blend_curve_revolved_on_arc }
++    #[inline] pub fn hit_corner_blend_coons_patch_tangent_to_sides(&self) -> bool { if self.corner_blend_coons_patch_tangent_to_sides { if __flaghit("corner_blend_coons_patch_tangent_to_sides") { return false; } } self.corner_blend_coons_patch_tangent_to_sides }
++    #[inline] pub fn hit_fillet_torus_center_on_axis(&self) -> bool { if self.fillet_torus_center_on_axis { if __flaghit("fillet_torus_center_on_axis") { return false; } } self.fillet_torus_center_on_axis }
++    #[inline] pub fn hit_fillet_torus_rail_on_axis(&self) -> bool { if self.fillet_torus_rail_on_axis { if __flaghit("fillet_torus_rail_on_axis") { return false; } } self.fillet_torus_rail_on_axis }
++    #[inline] pub fn hit_fillet_patch_keeps_fillet_edges(&self) -> bool { if self.fillet_patch_keeps_fillet_edges { if __flaghit("fillet_patch_keeps_fillet_edges") { return false; } } self.fillet_patch_keeps_fillet_edges }
++    #[inline] pub fn hit_fillet_knife_edge_rounds(&self) -> bool { if self.fillet_knife_edge_rounds { if __flaghit("fillet_knife_edge_rounds") { return false; } } self.fillet_knife_edge_rounds }
++    #[inline] pub fn hit_offset_excess_faces_after_merge(&self) -> bool { if self.offset_excess_faces_after_merge { if __flaghit("offset_excess_faces_after_merge") { return false; } } self.offset_excess_faces_after_merge }
++    #[inline] pub fn hit_offset_point_vertex_caps(&self) -> bool { if self.offset_point_vertex_caps { if __flaghit("offset_point_vertex_caps") { return false; } } self.offset_point_vertex_caps }
++    #[inline] pub fn hit_offset_clip_right_side_out(&self) -> bool { if self.offset_clip_right_side_out { if __flaghit("offset_clip_right_side_out") { return false; } } self.offset_clip_right_side_out }
++    #[inline] pub fn hit_revolution_offset_axis_both_sides(&self) -> bool { if self.revolution_offset_axis_both_sides { if __flaghit("revolution_offset_axis_both_sides") { return false; } } self.revolution_offset_axis_both_sides }
++    #[inline] pub fn hit_offset_extended_edges_mated(&self) -> bool { if self.offset_extended_edges_mated { if __flaghit("offset_extended_edges_mated") { return false; } } self.offset_extended_edges_mated }
++    #[inline] pub fn hit_offset_extends_cones_as_themselves(&self) -> bool { if self.offset_extends_cones_as_themselves { if __flaghit("offset_extends_cones_as_themselves") { return false; } } self.offset_extends_cones_as_themselves }
++    #[inline] pub fn hit_thicken_planar_side_walls(&self) -> bool { if self.thicken_planar_side_walls { if __flaghit("thicken_planar_side_walls") { return false; } } self.thicken_planar_side_walls }
++    #[inline] pub fn hit_remove_slit_loops_where_solids_touch(&self) -> bool { if self.remove_slit_loops_where_solids_touch { if __flaghit("remove_slit_loops_where_solids_touch") { return false; } } self.remove_slit_loops_where_solids_touch }
++    #[inline] pub fn hit_keep_operand_uv_trims(&self) -> bool { if self.keep_operand_uv_trims { if __flaghit("keep_operand_uv_trims") { return false; } } self.keep_operand_uv_trims }
++    #[inline] pub fn hit_geometric_g2_continuity(&self) -> bool { if self.geometric_g2_continuity { if __flaghit("geometric_g2_continuity") { return false; } } self.geometric_g2_continuity }
++    #[inline] pub fn hit_proto_vertex_miss_is_false(&self) -> bool { if self.proto_vertex_miss_is_false { if __flaghit("proto_vertex_miss_is_false") { return false; } } self.proto_vertex_miss_is_false }
++    #[inline] pub fn hit_check_loop_vertex_tolerance(&self) -> bool { if self.check_loop_vertex_tolerance { if __flaghit("check_loop_vertex_tolerance") { return false; } } self.check_loop_vertex_tolerance }
++    #[inline] pub fn hit_check_loop_projected_seam_ends(&self) -> bool { if self.check_loop_projected_seam_ends { if __flaghit("check_loop_projected_seam_ends") { return false; } } self.check_loop_projected_seam_ends }
++    #[inline] pub fn hit_edge_check_orders_tangent_faces(&self) -> bool { if self.edge_check_orders_tangent_faces { if __flaghit("edge_check_orders_tangent_faces") { return false; } } self.edge_check_orders_tangent_faces }
++    #[inline] pub fn hit_trim_boundary_seam_wrap(&self) -> bool { if self.trim_boundary_seam_wrap { if __flaghit("trim_boundary_seam_wrap") { return false; } } self.trim_boundary_seam_wrap }
++    #[inline] pub fn hit_bspline_check_min_radius(&self) -> bool { if self.bspline_check_min_radius { if __flaghit("bspline_check_min_radius") { return false; } } self.bspline_check_min_radius }
++    #[inline] pub fn hit_uv_trim_checks_on_surface(&self) -> bool { if self.uv_trim_checks_on_surface { if __flaghit("uv_trim_checks_on_surface") { return false; } } self.uv_trim_checks_on_surface }
++    #[inline] pub fn hit_loop_orientation_floor_from_loop_box(&self) -> bool { if self.loop_orientation_floor_from_loop_box { if __flaghit("loop_orientation_floor_from_loop_box") { return false; } } self.loop_orientation_floor_from_loop_box }
++    #[inline] pub fn hit_oscillating_skips_failed_guesses(&self) -> bool { if self.oscillating_skips_failed_guesses { if __flaghit("oscillating_skips_failed_guesses") { return false; } } self.oscillating_skips_failed_guesses }
++    #[inline] pub fn hit_refine_cc_range_ends(&self) -> bool { if self.refine_cc_range_ends { if __flaghit("refine_cc_range_ends") { return false; } } self.refine_cc_range_ends }
++    #[inline] pub fn hit_flat_corners_test_bits(&self) -> bool { if self.flat_corners_test_bits { if __flaghit("flat_corners_test_bits") { return false; } } self.flat_corners_test_bits }
++    #[inline] pub fn hit_torus_check_reads_v_interval(&self) -> bool { if self.torus_check_reads_v_interval { if __flaghit("torus_check_reads_v_interval") { return false; } } self.torus_check_reads_v_interval }
++    #[inline] pub fn hit_torus_check_spindle_apex(&self) -> bool { if self.torus_check_spindle_apex { if __flaghit("torus_check_spindle_apex") { return false; } } self.torus_check_spindle_apex }
++    #[inline] pub fn hit_cylinder_rebuild_mean_radius(&self) -> bool { if self.cylinder_rebuild_mean_radius { if __flaghit("cylinder_rebuild_mean_radius") { return false; } } self.cylinder_rebuild_mean_radius }
++    #[inline] pub fn hit_nurb_cylinder_inside_out_frame(&self) -> bool { if self.nurb_cylinder_inside_out_frame { if __flaghit("nurb_cylinder_inside_out_frame") { return false; } } self.nurb_cylinder_inside_out_frame }
++    #[inline] pub fn hit_planar_path_uncapped_open_profiles(&self) -> bool { if self.planar_path_uncapped_open_profiles { if __flaghit("planar_path_uncapped_open_profiles") { return false; } } self.planar_path_uncapped_open_profiles }
++    #[inline] pub fn hit_revolve_analytic_profile_faces(&self) -> bool { if self.revolve_analytic_profile_faces { if __flaghit("revolve_analytic_profile_faces") { return false; } } self.revolve_analytic_profile_faces }
++    #[inline] pub fn hit_revolve_arc_centre_near_axis_is_sphere(&self) -> bool { if self.revolve_arc_centre_near_axis_is_sphere { if __flaghit("revolve_arc_centre_near_axis_is_sphere") { return false; } } self.revolve_arc_centre_near_axis_is_sphere }
++    #[inline] pub fn hit_revolve_arc_touching_axis_is_horn_torus(&self) -> bool { if self.revolve_arc_touching_axis_is_horn_torus { if __flaghit("revolve_arc_touching_axis_is_horn_torus") { return false; } } self.revolve_arc_touching_axis_is_horn_torus }
++    #[inline] pub fn hit_taper_pivot_nearest_corner(&self) -> bool { if self.taper_pivot_nearest_corner { if __flaghit("taper_pivot_nearest_corner") { return false; } } self.taper_pivot_nearest_corner }
++    #[inline] pub fn hit_taper_tangent_corner_planes(&self) -> bool { if self.taper_tangent_corner_planes { if __flaghit("taper_tangent_corner_planes") { return false; } } self.taper_tangent_corner_planes }
++    #[inline] pub fn hit_taper_wall_closes_at_apex(&self) -> bool { if self.taper_wall_closes_at_apex { if __flaghit("taper_wall_closes_at_apex") { return false; } } self.taper_wall_closes_at_apex }
++    #[inline] pub fn hit_revolve_nested_shells_as_cavities(&self) -> bool { if self.revolve_nested_shells_as_cavities { if __flaghit("revolve_nested_shells_as_cavities") { return false; } } self.revolve_nested_shells_as_cavities }
++    #[inline] pub fn hit_revolve_holed_profile_void(&self) -> bool { if self.revolve_holed_profile_void { if __flaghit("revolve_holed_profile_void") { return false; } } self.revolve_holed_profile_void }
++    #[inline] pub fn hit_revolve_splits_curves_on_axis(&self) -> bool { if self.revolve_splits_curves_on_axis { if __flaghit("revolve_splits_curves_on_axis") { return false; } } self.revolve_splits_curves_on_axis }
++    #[inline] pub fn hit_loops_go_on_round_the_vertex(&self) -> bool { if self.loops_go_on_round_the_vertex { if __flaghit("loops_go_on_round_the_vertex") { return false; } } self.loops_go_on_round_the_vertex }
++    #[inline] pub fn hit_curve_sweep_caps_at_sweep_ends(&self) -> bool { if self.curve_sweep_caps_at_sweep_ends { if __flaghit("curve_sweep_caps_at_sweep_ends") { return false; } } self.curve_sweep_caps_at_sweep_ends }
++    #[inline] pub fn hit_linear_sweep_arc_is_cylinder(&self) -> bool { if self.linear_sweep_arc_is_cylinder { if __flaghit("linear_sweep_arc_is_cylinder") { return false; } } self.linear_sweep_arc_is_cylinder }
++    #[inline] pub fn hit_join_touching_loops(&self) -> bool { if self.join_touching_loops { if __flaghit("join_touching_loops") { return false; } } self.join_touching_loops }
++    #[inline] pub fn hit_uv_trim_reversal_on_surface(&self) -> bool { if self.uv_trim_reversal_on_surface { if __flaghit("uv_trim_reversal_on_surface") { return false; } } self.uv_trim_reversal_on_surface }
++    #[inline] pub fn hit_offset_resolve_crossing_loops(&self) -> bool { if self.offset_resolve_crossing_loops { if __flaghit("offset_resolve_crossing_loops") { return false; } } self.offset_resolve_crossing_loops }
++    #[inline] pub fn hit_local_operation_box_holds_new_surfaces(&self) -> bool { if self.local_operation_box_holds_new_surfaces { if __flaghit("local_operation_box_holds_new_surfaces") { return false; } } self.local_operation_box_holds_new_surfaces }
++    #[inline] pub fn hit_offset_walls_touch_refused(&self) -> bool { if self.offset_walls_touch_refused { if __flaghit("offset_walls_touch_refused") { return false; } } self.offset_walls_touch_refused }
++    #[inline] pub fn hit_local_operation_offset_status(&self) -> bool { if self.local_operation_offset_status { if __flaghit("local_operation_offset_status") { return false; } } self.local_operation_offset_status }
++    #[inline] pub fn hit_local_operation_refuses_loose_tangent_edges(&self) -> bool { if self.local_operation_refuses_loose_tangent_edges { if __flaghit("local_operation_refuses_loose_tangent_edges") { return false; } } self.local_operation_refuses_loose_tangent_edges }
++    #[inline] pub fn hit_local_operation_step_walls(&self) -> bool { if self.local_operation_step_walls { if __flaghit("local_operation_step_walls") { return false; } } self.local_operation_step_walls }
++    #[inline] pub fn hit_offset_closes_loop_gaps(&self) -> bool { if self.offset_closes_loop_gaps { if __flaghit("offset_closes_loop_gaps") { return false; } } self.offset_closes_loop_gaps }
++    #[inline] pub fn hit_local_operation_closes_walls_to_nothing(&self) -> bool { if self.local_operation_closes_walls_to_nothing { if __flaghit("local_operation_closes_walls_to_nothing") { return false; } } self.local_operation_closes_walls_to_nothing }
++    #[inline] pub fn hit_offset_collapsed_rounds_mated(&self) -> bool { if self.offset_collapsed_rounds_mated { if __flaghit("offset_collapsed_rounds_mated") { return false; } } self.offset_collapsed_rounds_mated }
++    #[inline] pub fn hit_offset_missing_surface_fails(&self) -> bool { if self.offset_missing_surface_fails { if __flaghit("offset_missing_surface_fails") { return false; } } self.offset_missing_surface_fails }
++    #[inline] pub fn hit_approximate_surface_bezier_starter(&self) -> bool { if self.approximate_surface_bezier_starter { if __flaghit("approximate_surface_bezier_starter") { return false; } } self.approximate_surface_bezier_starter }
++    #[inline] pub fn hit_revolution_round_offset_collapses(&self) -> bool { if self.revolution_round_offset_collapses { if __flaghit("revolution_round_offset_collapses") { return false; } } self.revolution_round_offset_collapses }
++    #[inline] pub fn hit_fillet_nx1_end_rib_global_merge(&self) -> bool { if self.fillet_nx1_end_rib_global_merge { if __flaghit("fillet_nx1_end_rib_global_merge") { return false; } } self.fillet_nx1_end_rib_global_merge }
++    #[inline] pub fn hit_uv_trim_corner_end_points_only(&self) -> bool { if self.uv_trim_corner_end_points_only { if __flaghit("uv_trim_corner_end_points_only") { return false; } } self.uv_trim_corner_end_points_only }
++    #[inline] pub fn hit_uv_trim_joins_drop_pieces(&self) -> bool { if self.uv_trim_joins_drop_pieces { if __flaghit("uv_trim_joins_drop_pieces") { return false; } } self.uv_trim_joins_drop_pieces }
++    #[inline] pub fn hit_bspline_trim_preserves_uv_spans(&self) -> bool { if self.bspline_trim_preserves_uv_spans { if __flaghit("bspline_trim_preserves_uv_spans") { return false; } } self.bspline_trim_preserves_uv_spans }
++    #[inline] pub fn hit_bspline_trim_keeps_rational_end_spans(&self) -> bool { if self.bspline_trim_keeps_rational_end_spans { if __flaghit("bspline_trim_keeps_rational_end_spans") { return false; } } self.bspline_trim_keeps_rational_end_spans }
++    #[inline] pub fn hit_cone_parallel_line_midpoint(&self) -> bool { if self.cone_parallel_line_midpoint { if __flaghit("cone_parallel_line_midpoint") { return false; } } self.cone_parallel_line_midpoint }
++    #[inline] pub fn hit_cone_parallel_line_domains(&self) -> bool { if self.cone_parallel_line_domains { if __flaghit("cone_parallel_line_domains") { return false; } } self.cone_parallel_line_domains }
++    #[inline] pub fn hit_cylinder_plane_tangent_within_tolerance(&self) -> bool { if self.cylinder_plane_tangent_within_tolerance { if __flaghit("cylinder_plane_tangent_within_tolerance") { return false; } } self.cylinder_plane_tangent_within_tolerance }
++    #[inline] pub fn hit_proto_edge_self_loop_on_vertex_degenerate(&self) -> bool { if self.proto_edge_self_loop_on_vertex_degenerate { if __flaghit("proto_edge_self_loop_on_vertex_degenerate") { return false; } } self.proto_edge_self_loop_on_vertex_degenerate }
++    #[inline] pub fn hit_slice_coincident_faces_sheet_side(&self) -> bool { if self.slice_coincident_faces_sheet_side { if __flaghit("slice_coincident_faces_sheet_side") { return false; } } self.slice_coincident_faces_sheet_side }
++    #[inline] pub fn hit_boolean_outer_shell_first(&self) -> bool { if self.boolean_outer_shell_first { if __flaghit("boolean_outer_shell_first") { return false; } } self.boolean_outer_shell_first }
++    #[inline] pub fn hit_shell_inner_shell_of_statuses(&self) -> bool { if self.shell_inner_shell_of_statuses { if __flaghit("shell_inner_shell_of_statuses") { return false; } } self.shell_inner_shell_of_statuses }
++    #[inline] pub fn hit_edge_reversal_keeps_failed_edge(&self) -> bool { if self.edge_reversal_keeps_failed_edge { if __flaghit("edge_reversal_keeps_failed_edge") { return false; } } self.edge_reversal_keeps_failed_edge }
++    #[inline] pub fn hit_iso_curve_sliver_domain_is_degenerate(&self) -> bool { if self.iso_curve_sliver_domain_is_degenerate { if __flaghit("iso_curve_sliver_domain_is_degenerate") { return false; } } self.iso_curve_sliver_domain_is_degenerate }
++    #[inline] pub fn hit_topology_failed_evaluations_propagate(&self) -> bool { if self.topology_failed_evaluations_propagate { if __flaghit("topology_failed_evaluations_propagate") { return false; } } self.topology_failed_evaluations_propagate }
++    #[inline] pub fn hit_heal_stage3_failures_propagate(&self) -> bool { if self.heal_stage3_failures_propagate { if __flaghit("heal_stage3_failures_propagate") { return false; } } self.heal_stage3_failures_propagate }
++    #[inline] pub fn hit_sweep_frame_on_planar_path_normal(&self) -> bool { if self.sweep_frame_on_planar_path_normal { if __flaghit("sweep_frame_on_planar_path_normal") { return false; } } self.sweep_frame_on_planar_path_normal }
++    #[inline] pub fn hit_linear_sweep_arc_to_cylinder_zero(&self) -> bool { if self.linear_sweep_arc_to_cylinder_zero { if __flaghit("linear_sweep_arc_to_cylinder_zero") { return false; } } self.linear_sweep_arc_to_cylinder_zero }
++    #[inline] pub fn hit_cover_refuses_folded_continuation(&self) -> bool { if self.cover_refuses_folded_continuation { if __flaghit("cover_refuses_folded_continuation") { return false; } } self.cover_refuses_folded_continuation }
++    #[inline] pub fn hit_boolean2d_plane_covers_far_faces(&self) -> bool { if self.boolean2d_plane_covers_far_faces { if __flaghit("boolean2d_plane_covers_far_faces") { return false; } } self.boolean2d_plane_covers_far_faces }
++    #[inline] pub fn hit_boolean_vertex_by_best_crossing(&self) -> bool { if self.boolean_vertex_by_best_crossing { if __flaghit("boolean_vertex_by_best_crossing") { return false; } } self.boolean_vertex_by_best_crossing }
++    #[inline] pub fn hit_boolean_splits_definition_across_split(&self) -> bool { if self.boolean_splits_definition_across_split { if __flaghit("boolean_splits_definition_across_split") { return false; } } self.boolean_splits_definition_across_split }
++    #[inline] pub fn hit_proto_edge_splits_at_captured_vertices(&self) -> bool { if self.proto_edge_splits_at_captured_vertices { if __flaghit("proto_edge_splits_at_captured_vertices") { return false; } } self.proto_edge_splits_at_captured_vertices }
++    #[inline] pub fn hit_boolean_cleanup_removes_slits(&self) -> bool { if self.boolean_cleanup_removes_slits { if __flaghit("boolean_cleanup_removes_slits") { return false; } } self.boolean_cleanup_removes_slits }
++    #[inline] pub fn hit_classify_edge_interval(&self) -> bool { if self.classify_edge_interval { if __flaghit("classify_edge_interval") { return false; } } self.classify_edge_interval }
++    #[inline] pub fn hit_seam_point_solutions_are_one(&self) -> bool { if self.seam_point_solutions_are_one { if __flaghit("seam_point_solutions_are_one") { return false; } } self.seam_point_solutions_are_one }
++    #[inline] pub fn hit_ellipse_trim_seam_lines_span_cone_height(&self) -> bool { if self.ellipse_trim_seam_lines_span_cone_height { if __flaghit("ellipse_trim_seam_lines_span_cone_height") { return false; } } self.ellipse_trim_seam_lines_span_cone_height }
++    #[inline] pub fn hit_degenerate_proto_edge_in_one_vertex(&self) -> bool { if self.degenerate_proto_edge_in_one_vertex { if __flaghit("degenerate_proto_edge_in_one_vertex") { return false; } } self.degenerate_proto_edge_in_one_vertex }
++    #[inline] pub fn hit_new_edge_vertex_tolerance_covers_gap(&self) -> bool { if self.new_edge_vertex_tolerance_covers_gap { if __flaghit("new_edge_vertex_tolerance_covers_gap") { return false; } } self.new_edge_vertex_tolerance_covers_gap }
++    #[inline] pub fn hit_transform_scales_each_tolerance(&self) -> bool { if self.transform_scales_each_tolerance { if __flaghit("transform_scales_each_tolerance") { return false; } } self.transform_scales_each_tolerance }
++    #[inline] pub fn hit_transform_model_size_from_body_box(&self) -> bool { if self.transform_model_size_from_body_box { if __flaghit("transform_model_size_from_body_box") { return false; } } self.transform_model_size_from_body_box }
++    #[inline] pub fn hit_torus_signed_gen_curve_interval(&self) -> bool { if self.torus_signed_gen_curve_interval { if __flaghit("torus_signed_gen_curve_interval") { return false; } } self.torus_signed_gen_curve_interval }
++    #[inline] pub fn hit_torus_keeps_inside_out(&self) -> bool { if self.torus_keeps_inside_out { if __flaghit("torus_keeps_inside_out") { return false; } } self.torus_keeps_inside_out }
++    #[inline] pub fn hit_torus_major_radius_from_origin(&self) -> bool { if self.torus_major_radius_from_origin { if __flaghit("torus_major_radius_from_origin") { return false; } } self.torus_major_radius_from_origin }
++    #[inline] pub fn hit_torus_iso_circle_axis_from_midpoint(&self) -> bool { if self.torus_iso_circle_axis_from_midpoint { if __flaghit("torus_iso_circle_axis_from_midpoint") { return false; } } self.torus_iso_circle_axis_from_midpoint }
++    #[inline] pub fn hit_found_torus_sphere_keep_tested_nurb(&self) -> bool { if self.found_torus_sphere_keep_tested_nurb { if __flaghit("found_torus_sphere_keep_tested_nurb") { return false; } } self.found_torus_sphere_keep_tested_nurb }
++    #[inline] pub fn hit_internal_pole_row_through_knot(&self) -> bool { if self.internal_pole_row_through_knot { if __flaghit("internal_pole_row_through_knot") { return false; } } self.internal_pole_row_through_knot }
++    #[inline] pub fn hit_extrusion_origin_scaled_zero(&self) -> bool { if self.extrusion_origin_scaled_zero { if __flaghit("extrusion_origin_scaled_zero") { return false; } } self.extrusion_origin_scaled_zero }
++    #[inline] pub fn hit_sheet_sweep_joins_profile_wires(&self) -> bool { if self.sheet_sweep_joins_profile_wires { if __flaghit("sheet_sweep_joins_profile_wires") { return false; } } self.sheet_sweep_joins_profile_wires }
++    #[inline] pub fn hit_point_solve_keeps_triangle_guess(&self) -> bool { if self.point_solve_keeps_triangle_guess { if __flaghit("point_solve_keeps_triangle_guess") { return false; } } self.point_solve_keeps_triangle_guess }
++    #[inline] pub fn hit_fillet_setback_from_start_vertex(&self) -> bool { if self.fillet_setback_from_start_vertex { if __flaghit("fillet_setback_from_start_vertex") { return false; } } self.fillet_setback_from_start_vertex }
++    #[inline] pub fn hit_fillet_corner_sphere_from_four_arcs(&self) -> bool { if self.fillet_corner_sphere_from_four_arcs { if __flaghit("fillet_corner_sphere_from_four_arcs") { return false; } } self.fillet_corner_sphere_from_four_arcs }
++    #[inline] pub fn hit_imprint_trims_edge_to_proto_vertex(&self) -> bool { if self.imprint_trims_edge_to_proto_vertex { if __flaghit("imprint_trims_edge_to_proto_vertex") { return false; } } self.imprint_trims_edge_to_proto_vertex }
++    #[inline] pub fn hit_imprint_extends_edge_to_proto_vertex(&self) -> bool { if self.imprint_extends_edge_to_proto_vertex { if __flaghit("imprint_extends_edge_to_proto_vertex") { return false; } } self.imprint_extends_edge_to_proto_vertex }
++    #[inline] pub fn hit_imprint_reuses_coincident_face_edge(&self) -> bool { if self.imprint_reuses_coincident_face_edge { if __flaghit("imprint_reuses_coincident_face_edge") { return false; } } self.imprint_reuses_coincident_face_edge }
++    #[inline] pub fn hit_fillet_point_step_per_point(&self) -> bool { if self.fillet_point_step_per_point { if __flaghit("fillet_point_step_per_point") { return false; } } self.fillet_point_step_per_point }
++    #[inline] pub fn hit_analytic_copy_keeps_parameterization(&self) -> bool { if self.analytic_copy_keeps_parameterization { if __flaghit("analytic_copy_keeps_parameterization") { return false; } } self.analytic_copy_keeps_parameterization }
++    #[inline] pub fn hit_fillet_point_bigger_step_retry(&self) -> bool { if self.fillet_point_bigger_step_retry { if __flaghit("fillet_point_bigger_step_retry") { return false; } } self.fillet_point_bigger_step_retry }
++    #[inline] pub fn hit_fillet_through_extended_rail_end(&self) -> bool { if self.fillet_through_extended_rail_end { if __flaghit("fillet_through_extended_rail_end") { return false; } } self.fillet_through_extended_rail_end }
++    #[inline] pub fn hit_precise_properties_body_length_scale(&self) -> bool { if self.precise_properties_body_length_scale { if __flaghit("precise_properties_body_length_scale") { return false; } } self.precise_properties_body_length_scale }
++    #[inline] pub fn hit_precise_properties_split_at_surface_knots(&self) -> bool { if self.precise_properties_split_at_surface_knots { if __flaghit("precise_properties_split_at_surface_knots") { return false; } } self.precise_properties_split_at_surface_knots }
++    #[inline] pub fn hit_precise_properties_trim_base_v(&self) -> bool { if self.precise_properties_trim_base_v { if __flaghit("precise_properties_trim_base_v") { return false; } } self.precise_properties_trim_base_v }
++    #[inline] pub fn hit_brep_area_between_solid_and_void(&self) -> bool { if self.brep_area_between_solid_and_void { if __flaghit("brep_area_between_solid_and_void") { return false; } } self.brep_area_between_solid_and_void }
++    #[inline] pub fn hit_offset_extension_from_base(&self) -> bool { if self.offset_extension_from_base { if __flaghit("offset_extension_from_base") { return false; } } self.offset_extension_from_base }
++    #[inline] pub fn hit_corner_blend_stays_inside_neighbours(&self) -> bool { if self.corner_blend_stays_inside_neighbours { if __flaghit("corner_blend_stays_inside_neighbours") { return false; } } self.corner_blend_stays_inside_neighbours }
++    #[inline] pub fn hit_fillet_cleanup_keeps_target_faces(&self) -> bool { if self.fillet_cleanup_keeps_target_faces { if __flaghit("fillet_cleanup_keeps_target_faces") { return false; } } self.fillet_cleanup_keeps_target_faces }
++    #[inline] pub fn hit_fillet_nx1_tangent_side_edge(&self) -> bool { if self.fillet_nx1_tangent_side_edge { if __flaghit("fillet_nx1_tangent_side_edge") { return false; } } self.fillet_nx1_tangent_side_edge }
++    #[inline] pub fn hit_fillet_nx1_opposite_continuation_side_edge(&self) -> bool { if self.fillet_nx1_opposite_continuation_side_edge { if __flaghit("fillet_nx1_opposite_continuation_side_edge") { return false; } } self.fillet_nx1_opposite_continuation_side_edge }
++    #[inline] pub fn hit_fillet_rails_meet_at_one_end_point(&self) -> bool { if self.fillet_rails_meet_at_one_end_point { if __flaghit("fillet_rails_meet_at_one_end_point") { return false; } } self.fillet_rails_meet_at_one_end_point }
++    #[inline] pub fn hit_fillet_nx1_tangent_corner_edge(&self) -> bool { if self.fillet_nx1_tangent_corner_edge { if __flaghit("fillet_nx1_tangent_corner_edge") { return false; } } self.fillet_nx1_tangent_corner_edge }
++    #[inline] pub fn hit_fillet_3x2_mixed_concave_side_edge(&self) -> bool { if self.fillet_3x2_mixed_concave_side_edge { if __flaghit("fillet_3x2_mixed_concave_side_edge") { return false; } } self.fillet_3x2_mixed_concave_side_edge }
++    #[inline] pub fn hit_offset_closed_curve_trim_arc(&self) -> bool { if self.offset_closed_curve_trim_arc { if __flaghit("offset_closed_curve_trim_arc") { return false; } } self.offset_closed_curve_trim_arc }
++    #[inline] pub fn hit_offset_analytic_mate_edges(&self) -> bool { if self.offset_analytic_mate_edges { if __flaghit("offset_analytic_mate_edges") { return false; } } self.offset_analytic_mate_edges }
++    #[inline] pub fn hit_shell_edges_on_analytics_exact(&self) -> bool { if self.shell_edges_on_analytics_exact { if __flaghit("shell_edges_on_analytics_exact") { return false; } } self.shell_edges_on_analytics_exact }
++    #[inline] pub fn hit_offset_stitch_at_body_tolerance(&self) -> bool { if self.offset_stitch_at_body_tolerance { if __flaghit("offset_stitch_at_body_tolerance") { return false; } } self.offset_stitch_at_body_tolerance }
++    #[inline] pub fn hit_curve_contacts_at_curve_ends(&self) -> bool { if self.curve_contacts_at_curve_ends { if __flaghit("curve_contacts_at_curve_ends") { return false; } } self.curve_contacts_at_curve_ends }
++    #[inline] pub fn hit_shell_empty_cavity_fails(&self) -> bool { if self.shell_empty_cavity_fails { if __flaghit("shell_empty_cavity_fails") { return false; } } self.shell_empty_cavity_fails }
++    #[inline] pub fn hit_fillet_refuse_ball_not_fitting(&self) -> bool { if self.fillet_refuse_ball_not_fitting { if __flaghit("fillet_refuse_ball_not_fitting") { return false; } } self.fillet_refuse_ball_not_fitting }
++    #[inline] pub fn hit_boolean_lists_virtual_surface_copies(&self) -> bool { if self.boolean_lists_virtual_surface_copies { if __flaghit("boolean_lists_virtual_surface_copies") { return false; } } self.boolean_lists_virtual_surface_copies }
++    #[inline] pub fn hit_sphere_small_circle_not_touching(&self) -> bool { if self.sphere_small_circle_not_touching { if __flaghit("sphere_small_circle_not_touching") { return false; } } self.sphere_small_circle_not_touching }
++    #[inline] pub fn hit_ssi_tangent_contact_points(&self) -> bool { if self.ssi_tangent_contact_points { if __flaghit("ssi_tangent_contact_points") { return false; } } self.ssi_tangent_contact_points }
++    #[inline] pub fn hit_ssi_trace_tangent_curves_once(&self) -> bool { if self.ssi_trace_tangent_curves_once { if __flaghit("ssi_trace_tangent_curves_once") { return false; } } self.ssi_trace_tangent_curves_once }
++    #[inline] pub fn hit_ssi_no_reverse_of_empty_trace(&self) -> bool { if self.ssi_no_reverse_of_empty_trace { if __flaghit("ssi_no_reverse_of_empty_trace") { return false; } } self.ssi_no_reverse_of_empty_trace }
++    #[inline] pub fn hit_ssi_singular_start_inside_direction(&self) -> bool { if self.ssi_singular_start_inside_direction { if __flaghit("ssi_singular_start_inside_direction") { return false; } } self.ssi_singular_start_inside_direction }
++    #[inline] pub fn hit_ssi_pole_point_keeps_its_tangent(&self) -> bool { if self.ssi_pole_point_keeps_its_tangent { if __flaghit("ssi_pole_point_keeps_its_tangent") { return false; } } self.ssi_pole_point_keeps_its_tangent }
++    #[inline] pub fn hit_ssi_tangent_curve_tracer(&self) -> bool { if self.ssi_tangent_curve_tracer { if __flaghit("ssi_tangent_curve_tracer") { return false; } } self.ssi_tangent_curve_tracer }
++    #[inline] pub fn hit_fillet_trace_rejects_short_step(&self) -> bool { if self.fillet_trace_rejects_short_step { if __flaghit("fillet_trace_rejects_short_step") { return false; } } self.fillet_trace_rejects_short_step }
++    #[inline] pub fn hit_curve_tight_box_interval_knots(&self) -> bool { if self.curve_tight_box_interval_knots { if __flaghit("curve_tight_box_interval_knots") { return false; } } self.curve_tight_box_interval_knots }
++    #[inline] pub fn hit_face_tight_box_searches_trim(&self) -> bool { if self.face_tight_box_searches_trim { if __flaghit("face_tight_box_searches_trim") { return false; } } self.face_tight_box_searches_trim }
++    #[inline] pub fn hit_boolean_skips_faces_apart(&self) -> bool { if self.boolean_skips_faces_apart { if __flaghit("boolean_skips_faces_apart") { return false; } } self.boolean_skips_faces_apart }
++    #[inline] pub fn hit_delete_vertex_joins_seam_iso_curve(&self) -> bool { if self.delete_vertex_joins_seam_iso_curve { if __flaghit("delete_vertex_joins_seam_iso_curve") { return false; } } self.delete_vertex_joins_seam_iso_curve }
++    #[inline] pub fn hit_boolean_wire_edge_keeps_faceuse_shell(&self) -> bool { if self.boolean_wire_edge_keeps_faceuse_shell { if __flaghit("boolean_wire_edge_keeps_faceuse_shell") { return false; } } self.boolean_wire_edge_keeps_faceuse_shell }
++    #[inline] pub fn hit_boolean_new_face_closure_both_sides(&self) -> bool { if self.boolean_new_face_closure_both_sides { if __flaghit("boolean_new_face_closure_both_sides") { return false; } } self.boolean_new_face_closure_both_sides }
++    #[inline] pub fn hit_stitch_solid_nests_cavities(&self) -> bool { if self.stitch_solid_nests_cavities { if __flaghit("stitch_solid_nests_cavities") { return false; } } self.stitch_solid_nests_cavities }
++    #[inline] pub fn hit_box_face_failures_propagate(&self) -> bool { if self.box_face_failures_propagate { if __flaghit("box_face_failures_propagate") { return false; } } self.box_face_failures_propagate }
++    #[inline] pub fn hit_ellipse_adjust_step_interval_keeps_turns(&self) -> bool { if self.ellipse_adjust_step_interval_keeps_turns { if __flaghit("ellipse_adjust_step_interval_keeps_turns") { return false; } } self.ellipse_adjust_step_interval_keeps_turns }
++}
+diff --git a/crates/solidcore/src/mass/integrator/properties.rs b/crates/solidcore/src/mass/integrator/properties.rs
+index a6d34ca3e..480b969cc 100644
+--- a/crates/solidcore/src/mass/integrator/properties.rs
++++ b/crates/solidcore/src/mass/integrator/properties.rs
+@@ -311,7 +311,7 @@ pub fn boundary_properties(
+     // integral round a closed loop is zero), but one far below the trims makes each
+     // integral long and the area a small difference of large terms. With
+     // `fixes.precise_properties_trim_base_v` (WR-563, #1556) it is the trims' lowest v.
+-    let base_v = if k.fixes.precise_properties_trim_base_v {
++    let base_v = if k.fixes.hit_precise_properties_trim_base_v() {
+         trims_base_v(k, trims, domain)?
+     } else {
+         domain.min().y
+@@ -329,7 +329,7 @@ pub fn boundary_properties(
+         // sqrt(area), or the origin's distance when larger: each component is then held
+         // to the area's share of its own size, where 1.0.1's tenth holds each extra power
+         // ten times tighter, below roundoff at tight accuracies.
+-        let length = if k.fixes.precise_properties_body_length_scale {
++        let length = if k.fixes.hit_precise_properties_body_length_scale() {
+             let a = 10.0 * estimated_area.sqrt();
+             let b = origin_distance;
+             if a > b {
+@@ -383,7 +383,7 @@ pub fn boundary_properties(
+         // fork's tangency-labs/smlib@08d9a14) the pieces are those between the trim
+         // curve's knots and its crossings of the surface's knot lines u = k, where the
+         // integrand's derivatives jump too.
+-        let knots = if k.fixes.precise_properties_split_at_surface_knots {
++        let knots = if k.fixes.hit_precise_properties_split_at_surface_knots() {
+             trim_curve_breaks(k, trim, surface)?
+         } else {
+             trim.knots(k, Some(&ivl))?.0
+@@ -400,7 +400,7 @@ pub fn boundary_properties(
+                 continue;
+             };
+             // (`!(dB > dA)`: also an unordered pair)
+-            if k.fixes.precise_properties_split_at_surface_knots
++            if k.fixes.hit_precise_properties_split_at_surface_knots()
+                 && b.partial_cmp(&a) != Some(std::cmp::Ordering::Greater)
+             {
+                 continue; // a crossing at a knot
+@@ -628,7 +628,7 @@ pub fn brep_properties(
+                     if separating { 0.0 } else { mass.y },
+                     PPF_ALL,
+                 )?;
+-                if separating && k.fixes.brep_area_between_solid_and_void {
++                if separating && k.fixes.hit_brep_area_between_solid_and_void() {
+                     // Not upstream (WR-535, the fork's tangency-labs/smlib@d2d9586): the
+                     // faceuse's volume and mass enter only when it bounds a non void region,
+                     // its area and area moments only when the area behaviour selects it: a
+diff --git a/crates/solidcore/src/nurbs/b_spline_curve/p3.rs b/crates/solidcore/src/nurbs/b_spline_curve/p3.rs
+index 3638f93b3..eeb3560ae 100644
+--- a/crates/solidcore/src/nurbs/b_spline_curve/p3.rs
++++ b/crates/solidcore/src/nurbs/b_spline_curve/p3.rs
+@@ -1498,7 +1498,7 @@ impl BSplineCurve {
+             // mapped trim that cannot be sized fails test 13 and is not analysed.
+             let mut mapped: Option<BSplineCurve> = None;
+             let (mut radius_sized, mut radius_tol, mut radius_sep) = (true, tol, min_sep);
+-            if k.fixes.uv_trim_checks_on_surface {
++            if k.fixes.hit_uv_trim_checks_on_surface() {
+                 if let Some(l) = trim_metric(k, self, bounded, ovr.trim_surface, &domain)? {
+                     mapped = mapped_trim(self, l);
+                     let mapped_box = match mapped.as_ref() {
+@@ -1541,7 +1541,7 @@ impl BSplineCurve {
+             // fires; the opt-in `Kernel::fixes.bspline_check_min_radius` reads it first:
+             // WR-382, tangency-labs/solidcore#475)
+             let first_radius = solutions.first().map_or(BIG_DOUBLE, |s| s.solution_value);
+-            if k.fixes.bspline_check_min_radius {
++            if k.fixes.hit_bspline_check_min_radius() {
+                 min_radius = first_radius;
+             }
+             if min_radius < radius_tol {
+@@ -1574,7 +1574,7 @@ impl BSplineCurve {
+         // a length, and a UV trim's control points are measured as lengths on its face's
+         // surface, as the radius test above.
+         let mut pole_curve: Option<BSplineCurve> = None;
+-        if k.fixes.uv_trim_checks_on_surface {
++        if k.fixes.hit_uv_trim_checks_on_surface() {
+             let interval = self.natural_interval();
+             if let Some(l) = trim_metric(k, self, ovr.bounded, ovr.trim_surface, &interval)? {
+                 pole_curve = mapped_trim(self, l);
+diff --git a/crates/solidcore/src/nurbs/b_spline_curve_n_lib.rs b/crates/solidcore/src/nurbs/b_spline_curve_n_lib.rs
+index c5c76892f..75cf3ce09 100644
+--- a/crates/solidcore/src/nurbs/b_spline_curve_n_lib.rs
++++ b/crates/solidcore/src/nurbs/b_spline_curve_n_lib.rs
+@@ -2292,8 +2292,8 @@ impl BSplineCurve {
+             // `fixes.bspline_trim_keeps_rational_end_spans` (WR-575): a rational curve's
+             // short end span stays, as removing it moves the conic off its shape
+             let keeps_rational =
+-                k.fixes.bspline_trim_keeps_rational_end_spans && cur1.is_rational();
+-            if (!k.fixes.bspline_trim_preserves_uv_spans || self.dim == 3)
++                k.fixes.hit_bspline_trim_keeps_rational_end_spans() && cur1.is_rational();
++            if (!k.fixes.hit_bspline_trim_preserves_uv_spans() || self.dim == 3)
+                 && !keeps_rational
+                 && ((head < zone_tol_1d_min && knots.len() > 2)
+                     || (tail < zone_tol_1d_max && knots.len() > 2))
+@@ -2562,7 +2562,7 @@ mod tests {
+         let mut fixed = Kernel::default();
+         fixed.fixes.bspline_trim_keeps_rational_end_spans = true;
+         let default = Kernel::default();
+-        assert!(!default.fixes.bspline_trim_keeps_rational_end_spans);
++        assert!(!default.fixes.hit_bspline_trim_keeps_rational_end_spans());
+         for (min, max) in [(0.5 - 1e-7, 0.9), (0.1, 0.5 + 1e-7)] {
+             let ivl = Extent1d::from_min_max(min, max);
+             let mut kept = half_circle(r);
+@@ -2633,7 +2633,7 @@ mod tests {
+     #[test]
+     fn uv_trim_fix_preserves_default_and_model_space_cleanup() {
+         let default = Kernel::default();
+-        assert!(!default.fixes.bspline_trim_preserves_uv_spans);
++        assert!(!default.fixes.hit_bspline_trim_preserves_uv_spans());
+         let mut fixed = Kernel::default();
+         fixed.fixes.bspline_trim_preserves_uv_spans = true;
+         for dim in [2, 3] {
+diff --git a/crates/solidcore/src/nurbs/b_spline_surface/p2.rs b/crates/solidcore/src/nurbs/b_spline_surface/p2.rs
+index 629db0f6d..1a045ec80 100644
+--- a/crates/solidcore/src/nurbs/b_spline_surface/p2.rs
++++ b/crates/solidcore/src/nurbs/b_spline_surface/p2.rs
+@@ -400,7 +400,7 @@ impl BSplineSurface {
+     /// `sm_SameParameterization`, WR-450, #387): a face split with
+     /// `MakeEdgeInFaceWithVU` keeps its UV domain and trims on the copy.
+     fn analytic_or_exact_copy(&self, k: &Kernel, analytic: Surface) -> Surface {
+-        if !k.fixes.analytic_copy_keeps_parameterization {
++        if !k.fixes.hit_analytic_copy_keeps_parameterization() {
+             return analytic;
+         }
+         let domain = self.natural_uv_domain();
+@@ -518,7 +518,7 @@ impl BSplineSurface {
+             } else {
+                 uv_domain.u_interval()
+             };
+-            if k.fixes.iso_curve_sliver_domain_is_degenerate
++            if k.fixes.hit_iso_curve_sliver_domain_is_degenerate()
+                 && trim_ivl.max() - trim_ivl.min() < EFF_ZERO
+             {
+                 // not upstream (WR-562, opt-in; fork tangency-labs/smlib 8088f5e): a domain
+@@ -557,7 +557,7 @@ impl BSplineSurface {
+         let total_curves = arcs.len();
+ 
+         // no work - not given exactly 3 curves
+-        if total_curves == 4 && k.fixes.fillet_corner_sphere_from_four_arcs {
++        if total_curves == 4 && k.fixes.hit_fillet_corner_sphere_from_four_arcs() {
+             return Self::sphere_from_four_arcs(k, arcs, tol_3d);
+         }
+         if total_curves != 3 {
+diff --git a/crates/solidcore/src/nurbs/b_spline_surface_n_lib/p2.rs b/crates/solidcore/src/nurbs/b_spline_surface_n_lib/p2.rs
+index ebd79aec4..0d0ffc011 100644
+--- a/crates/solidcore/src/nurbs/b_spline_surface_n_lib/p2.rs
++++ b/crates/solidcore/src/nurbs/b_spline_surface_n_lib/p2.rs
+@@ -2003,7 +2003,7 @@ fn corner_blend_4(
+ 
+     // Not upstream (WR-547; tangency-labs/smlib@cae8618): the patch tangent to its sides'
+     // surfaces
+-    if k.fixes.corner_blend_coons_patch_tangent_to_sides && !create_bilinear_patch {
++    if k.fixes.hit_corner_blend_coons_patch_tangent_to_sides() && !create_bilinear_patch {
+         if let Some(tangent) =
+             make_coons_patch_tangent_to_sides(k, &coons, &uv_crvs, surfaces, tangency_tol_radians)?
+         {
+@@ -2498,7 +2498,7 @@ fn corner_blend_n(
+         &mut ders,
+         tangency_tol_radians,
+         None,
+-        k.fixes.corner_blend_stays_inside_neighbours,
++        k.fixes.hit_corner_blend_stays_inside_neighbours(),
+     )
+ }
+ 
+diff --git a/crates/solidcore/src/offset/offset_executive/crossing_loops.rs b/crates/solidcore/src/offset/offset_executive/crossing_loops.rs
+index 759e097e7..8d895010d 100644
+--- a/crates/solidcore/src/offset/offset_executive/crossing_loops.rs
++++ b/crates/solidcore/src/offset/offset_executive/crossing_loops.rs
+@@ -493,7 +493,7 @@ impl OffsetExecutive {
+         // per edge use: (parameter, crossing)
+         let mut cuts: Vec<Vec<(f64, i64)>> = vec![Vec::new(); edgeuses.len()];
+         let mut num_crossings: i64 = 0;
+-        if kernel.fixes.offset_walls_touch_refused {
++        if kernel.fixes.hit_offset_walls_touch_refused() {
+             // Fork a759622: every contact is looked at before any crossing is resolved
+             // or refused.
+             num_crossings = cut_at_crossings_refusing_touch(
+diff --git a/crates/solidcore/src/offset/offset_executive/p1.rs b/crates/solidcore/src/offset/offset_executive/p1.rs
+index 05916fa52..46efcf7f5 100644
+--- a/crates/solidcore/src/offset/offset_executive/p1.rs
++++ b/crates/solidcore/src/offset/offset_executive/p1.rs
+@@ -740,7 +740,7 @@ impl OffsetExecutive {
+                 let dist = self.offset_distance * 5.0;
+                 let extension = match base.kind() {
+                     // Not upstream (WR-532), opt-in `offset_extends_cones_as_themselves`
+-                    SurfaceKind::Cone(cone) if kernel.fixes.offset_extends_cones_as_themselves => {
++                    SurfaceKind::Cone(cone) if kernel.fixes.hit_offset_extends_cones_as_themselves() => {
+                         extend_cone_as_itself(kernel, base, cone, dist)?
+                     }
+                     _ => base.create_extended_surface(kernel, dist, ContinuityType::G1R)?,
+@@ -1803,7 +1803,7 @@ impl OffsetExecutive {
+                         // `EdgeuseOffset` (#1795: the offsets stop meeting round a closed
+                         // edge) was not mated: its faces' offsets are intersected as upstream
+                         // does.
+-                        let mated = kernel.fixes.offset_extended_edges_mated
++                        let mated = kernel.fixes.hit_offset_extended_edges_mated()
+                             && self.extend_convex_edges()
+                             && !edge::edgeuses(original, edge_id, None, None)?
+                                 .iter()
+@@ -1924,7 +1924,7 @@ impl OffsetExecutive {
+         // surface's domain is clipped to it by a 2D boolean of planar faces made from its
+         // UV loops, which need them counterclockwise (the SM_OT_SAME faceuse's sense); an
+         // inset's SM_OT_OPPOSITE loops made that face inside out and the clip empty.
+-        let right_side_out = kernel.fixes.offset_clip_right_side_out;
++        let right_side_out = kernel.fixes.hit_offset_clip_right_side_out();
+         let loop_orientation = if right_side_out {
+             let fits = original
+                 .face(face_id)?
+@@ -2213,7 +2213,7 @@ impl OffsetExecutive {
+         for (index, &result_face) in result_faces.iter().enumerate() {
+             // (WR-342 opt-in: the loops in the sense of the faceuse's orientation, which
+             // the offset face is made with)
+-            let result_orientation = if kernel.fixes.offset_clip_right_side_out {
++            let result_orientation = if kernel.fixes.hit_offset_clip_right_side_out() {
+                 orientation
+             } else {
+                 OrientType::Same
+diff --git a/crates/solidcore/src/offset/offset_executive/p2.rs b/crates/solidcore/src/offset/offset_executive/p2.rs
+index e49d6ed92..05151dcb1 100644
+--- a/crates/solidcore/src/offset/offset_executive/p2.rs
++++ b/crates/solidcore/src/offset/offset_executive/p2.rs
+@@ -214,7 +214,7 @@ fn make_shell_edges_exact(
+     shell: &mut Brep,
+     notifications: &mut OffsetNotifications<'_>,
+ ) -> Result<()> {
+-    if !kernel.fixes.shell_edges_on_analytics_exact {
++    if !kernel.fixes.hit_shell_edges_on_analytics_exact() {
+         return Ok(());
+     }
+     let mut stores = NotificationStores {
+@@ -294,7 +294,7 @@ impl OffsetExecutive {
+             // Opt-in (WR-454, #380; tangency-labs/smlib@fbe43bb): an inset of a solid whose
+             // offset leaves nothing has no cavity to take away (the difference would hand
+             // the input back unhollowed); an offset that is no closed solid bounds none.
+-            if kernel.fixes.shell_empty_cavity_fails
++            if kernel.fixes.hit_shell_empty_cavity_fails()
+                 && options.offset.distance < 0.0
+                 && input_is_manifold
+             {
+@@ -309,7 +309,7 @@ impl OffsetExecutive {
+             // closed solid is refused rather than handed back as it is (as WR-454's opt-in
+             // does for an inset): the gap closing must never turn upstream's refusal into a
+             // success on a broken body
+-            if kernel.fixes.offset_closes_loop_gaps
++            if kernel.fixes.hit_offset_closes_loop_gaps()
+                 && input_is_manifold
+                 && !brep_is_manifold_solid(&shell)?
+             {
+@@ -338,7 +338,7 @@ impl OffsetExecutive {
+                 // but report ownership transferred on a later stitch error.
+                 // the sheet's faces as copied into the shell (#978, #1599; only with an opt-in)
+                 let side_walls =
+-                    options.merge_sheet_side_walls || kernel.fixes.thicken_planar_side_walls;
++                    options.merge_sheet_side_walls || kernel.fixes.hit_thicken_planar_side_walls();
+                 let mut sheet_faces: Vec<FaceId> = Vec::new();
+                 {
+                     let source = required(input.as_ref(), OP_SHELL)?;
+@@ -787,8 +787,8 @@ impl OffsetExecutive {
+             // the edges that run past a step wall's corner (after WR-531's caps below, in the
+             // fork's order)
+             let local = self.operation() == OffsetOperation::LocalOperation;
+-            let step_walls = kernel.fixes.local_operation_step_walls && local;
+-            if kernel.fixes.offset_closes_loop_gaps || step_walls {
++            let step_walls = kernel.fixes.hit_local_operation_step_walls() && local;
++            if kernel.fixes.hit_offset_closes_loop_gaps() || step_walls {
+                 self.close_loop_gaps(kernel, original, notifications)?;
+             }
+ 
+@@ -800,7 +800,7 @@ impl OffsetExecutive {
+             // sphere about it through that circle, as the unextended offset builds it
+             // (BuildOffsetOfVertex: a strut vertex with one arc to blend), a face of its whole
+             // surface the merge joins to the offset face along the circle.
+-            if kernel.fixes.offset_point_vertex_caps {
++            if kernel.fixes.hit_offset_point_vertex_caps() {
+                 for vertex in bp1::vertices(original, None)? {
+                     if crate::topology::vertex::edges(original, vertex, None)?.len() != 1 {
+                         continue;
+@@ -835,7 +835,7 @@ impl OffsetExecutive {
+             // the merge only, where each merged face lies wholly on the offset or wholly in
+             // the excess. Here an offset face is not trimmed yet, so one that bounds the
+             // offset can have an edge inside the excess and be taken.
+-            let excess_after_merge = kernel.fixes.offset_excess_faces_after_merge;
++            let excess_after_merge = kernel.fixes.hit_offset_excess_faces_after_merge();
+             if !excess_after_merge {
+                 // cpp:1580: retain the same temporary on both success and failure.
+                 let mut temporary = required(self.take_offset_brep(), OP_EXTENDED)?;
+@@ -873,7 +873,7 @@ impl OffsetExecutive {
+             // `Kernel::fixes.offset_resolve_crossing_loops`: an offset face whose loops cross
+             // (an inner loop's offset grown past the outer loop's) is rebuilt from the
+             // stretches of its loops that bound it, before the merge sees it.
+-            if kernel.fixes.offset_resolve_crossing_loops {
++            if kernel.fixes.hit_offset_resolve_crossing_loops() {
+                 self.resolve_crossing_loops(kernel, notifications)?;
+             }
+ 
+@@ -892,7 +892,7 @@ impl OffsetExecutive {
+             // FindAndSetInfiniteRegion when >1 region (editing temporarily false),
+             // refresh regions, set void flags by infinite-region identity, then
+             // transfer result ownership and clear the executive temporary.
+-            if kernel.fixes.offset_stitch_at_body_tolerance {
++            if kernel.fixes.hit_offset_stitch_at_body_tolerance() {
+                 // Opt-in (WR-455, #855; tangency-labs/smlib@601d804): one pass at the body's
+                 // tolerance. `StitchIntoSolid` doubles its tolerance until no lamina edge is
+                 // left, but the lamina edges a merge leaves are the rims of the cut-off
+@@ -1161,7 +1161,7 @@ impl OffsetExecutive {
+         // mated across it in `do_extended_offset`, as at a sharp edge.
+         if extended
+             && surface.is_none()
+-            && kernel.fixes.offset_collapsed_rounds_mated
++            && kernel.fixes.hit_offset_collapsed_rounds_mated()
+             && self.inset()
+             && self.extend_convex_edges()
+         {
+@@ -1875,7 +1875,7 @@ fn merge_sheet_side_walls(
+             }
+         }
+     }
+-    let every_wall = kernel.fixes.thicken_planar_side_walls;
++    let every_wall = kernel.fixes.hit_thicken_planar_side_walls();
+     if merging.is_empty() && !every_wall {
+         return Ok(());
+     }
+diff --git a/crates/solidcore/src/offset/offset_executive/step_gaps.rs b/crates/solidcore/src/offset/offset_executive/step_gaps.rs
+index 979f82ea9..8d4598bf1 100644
+--- a/crates/solidcore/src/offset/offset_executive/step_gaps.rs
++++ b/crates/solidcore/src/offset/offset_executive/step_gaps.rs
+@@ -361,7 +361,7 @@ impl OffsetExecutive {
+                     // only where a face closes to nothing with it, which `close_loop_gaps`
+                     // checks once every gap is closed. The edge is squeezed out, its two
+                     // vertices one, and noted with the original face across it.
+-                    if kernel.fixes.local_operation_closes_walls_to_nothing
++                    if kernel.fixes.hit_local_operation_closes_walls_to_nothing()
+                         && self.squeeze_closed_edge(
+                             kernel,
+                             original,
+diff --git a/crates/solidcore/src/offset/offset_geometry_creation.rs b/crates/solidcore/src/offset/offset_geometry_creation.rs
+index b99923427..cea06243e 100644
+--- a/crates/solidcore/src/offset/offset_geometry_creation.rs
++++ b/crates/solidcore/src/offset/offset_geometry_creation.rs
+@@ -1601,7 +1601,7 @@ impl OffsetGeometryCreation {
+         else {
+             // `Kernel::fixes.offset_missing_surface_fails` (WR-464, #1072): only a collapse
+             // is no surface (`Surface::offset_collapses`); any other miss has failed.
+-            if k.fixes.offset_missing_surface_fails
++            if k.fixes.hit_offset_missing_surface_fails()
+                 && !brep.surface(sur)?.offset_collapses(
+                     k,
+                     sign * self.offset_distance,
+@@ -2753,7 +2753,7 @@ impl OffsetGeometryCreation {
+         // two trim points bound two arcs and the interval between them is only one of them.
+         // The edge takes the arc that runs where the base edge does; when a trim point lies
+         // on the curve's seam the other arc is an interval too, else the edge is not trimmed.
+-        if k.fixes.offset_closed_curve_trim_arc {
++        if k.fixes.hit_offset_closed_curve_trim_arc() {
+             let nat_ivl = curve_of(brep, curve_3d)?.natural_interval();
+             let seam_tol = EFF_ZERO * (1.0 + nat_ivl.max_dimension());
+             let tol = self.this_approx_tol_3d;
+@@ -3233,7 +3233,7 @@ impl OffsetGeometryCreation {
+             // new surface (a local operation moving a face beside a blend, or one piece of a
+             // split face), the drop crosses the gap between them and the faces no longer
+             // meet there
+-            if k.fixes.local_operation_refuses_loose_tangent_edges && executive.is_local_operation()
++            if k.fixes.hit_local_operation_refuses_loose_tangent_edges() && executive.is_local_operation()
+             {
+                 let meet_tol = 10.0 * smos_max(off_tol, self.this_approx_tol_3d());
+                 if dropped.max_drop_to_surf > meet_tol {
+@@ -3475,7 +3475,7 @@ impl OffsetGeometryCreation {
+         // both extended surfaces as the exact curve between the same ends (within the
+         // analytic surfaces, not on a tangent extension) is replaced by that curve, its
+         // UV curves dropped from it.
+-        if k.fixes.offset_analytic_mate_edges {
++        if k.fixes.hit_offset_analytic_mate_edges() {
+             let ext_dist = self.offset_distance().abs() * 5.0;
+             let analytic1 = create_analytic_extension(k, surface_of(brep, surf1)?, ext_dist)?;
+             let analytic2 = create_analytic_extension(k, surface_of(brep, surf2)?, ext_dist)?;
+@@ -4007,7 +4007,7 @@ impl OffsetGeometryCreation {
+             // tangency-labs/smlib 5d428ae): a local operation that moved only one of two
+             // tangent faces along its normal leaves them parallel, one step apart: a wall
+             // between their edges closes the body.
+-            if k.fixes.local_operation_step_walls
++            if k.fixes.hit_local_operation_step_walls()
+                 && tan_sec
+                 && !lamina
+                 && executive.is_local_operation()
+@@ -4035,7 +4035,7 @@ impl OffsetGeometryCreation {
+                 );
+                 // Opt-in (WR-530): a local operation has no later step that would close
+                 // the gap: it fails
+-                if k.fixes.local_operation_refuses_loose_tangent_edges
++                if k.fixes.hit_local_operation_refuses_loose_tangent_edges()
+                     && executive.is_local_operation()
+                 {
+                     extended?;
+@@ -4058,7 +4058,7 @@ impl OffsetGeometryCreation {
+             ))?;
+             // Not upstream (WR-344 refinement, #1795): the merge must still intersect the
+             // offsets of an edge that could not be mated
+-            if mated.is_none() && k.fixes.offset_extended_edges_mated {
++            if mated.is_none() && k.fixes.hit_offset_extended_edges_mated() {
+                 executive.note_unmated_edgeuse(original_edgeuse);
+             }
+             return Ok(out);
+diff --git a/crates/solidcore/src/primitive/primitive_creation/p1/primitives.rs b/crates/solidcore/src/primitive/primitive_creation/p1/primitives.rs
+index f2a594736..2dfd11b69 100644
+--- a/crates/solidcore/src/primitive/primitive_creation/p1/primitives.rs
++++ b/crates/solidcore/src/primitive/primitive_creation/p1/primitives.rs
+@@ -491,7 +491,7 @@ impl PrimitiveCreation {
+         brep.set_editing_enabled(true);
+         // (WR-596, opt-in: the fork's `AddBoxFace`, every status returned; editing is
+         // turned off again on every way out)
+-        let propagate = k.fixes.box_face_failures_propagate;
++        let propagate = k.fixes.hit_box_face_failures_propagate();
+         let result = box_faces(k, brep, [length, width, height], frame, propagate);
+         if propagate || result.is_ok() {
+             brep.set_editing_enabled(false);
+@@ -855,7 +855,7 @@ impl PrimitiveCreation {
+                     // Not upstream (WR-536, opt-in): b's faces are rebuilt on copies of
+                     // the first surface below: one it does not cover would carry edges
+                     // far off its surface
+-                    if k.fixes.boolean2d_plane_covers_far_faces && !covered {
++                    if k.fixes.hit_boolean2d_plane_covers_far_faces() && !covered {
+                         return Err(SolidError::Upstream {
+                             operation: op,
+                             code: crate::error::SM_ERR_INVALID_INPUT,
+@@ -879,7 +879,7 @@ impl PrimitiveCreation {
+                     let covered =
+                         cover_face_surface(k, brep, *face, &first_surface, tolerance * 2.0, None)?;
+                     // (WR-536, opt-in) a plane that cannot be grown to cover the first face
+-                    if k.fixes.boolean2d_plane_covers_far_faces && !covered {
++                    if k.fixes.hit_boolean2d_plane_covers_far_faces() && !covered {
+                         return Err(SolidError::Upstream {
+                             operation: op,
+                             code: crate::error::SM_ERR_INVALID_INPUT,
+@@ -1068,7 +1068,7 @@ impl PrimitiveCreation {
+                     8,
+                     // Not upstream (WR-576, #1507): with the fix, an arc only to the
+                     // zero the cylinder's own check holds it to.
+-                    if k.fixes.linear_sweep_arc_to_cylinder_zero {
++                    if k.fixes.hit_linear_sweep_arc_to_cylinder_zero() {
+                         arc_zero(k, curve)?
+                     } else {
+                         brep.tolerance()
+@@ -1102,7 +1102,7 @@ impl PrimitiveCreation {
+                     }
+                     // Not upstream (WR-565, #1477): with the fix, an arc short of a
+                     // whole turn swept square to its plane is a cylinder too.
+-                    if k.fixes.linear_sweep_arc_is_cylinder
++                    if k.fixes.hit_linear_sweep_arc_is_cylinder()
+                         && angle > 0.0
+                         && angle <= 360.0 - brep.tolerance()
+                         && distance * frame.z_axis().cross(sweep_dir).length() <= brep.tolerance()
+diff --git a/crates/solidcore/src/primitive/primitive_creation/p2/planar_path.rs b/crates/solidcore/src/primitive/primitive_creation/p2/planar_path.rs
+index a3f2935c4..e2459476e 100644
+--- a/crates/solidcore/src/primitive/primitive_creation/p2/planar_path.rs
++++ b/crates/solidcore/src/primitive/primitive_creation/p2/planar_path.rs
+@@ -115,7 +115,7 @@ fn profile_closes(k: &Kernel, profiles: &[Curve], tol: f64) -> Result<bool> {
+ /// no planar region, its cap fails and `CreateCurveSweep` returns before stitching its
+ /// walls (a failure upstream ignores).
+ fn cap_profile_ends(k: &Kernel, profiles: &[Curve], tol: f64) -> Result<bool> {
+-    if !k.fixes.planar_path_uncapped_open_profiles {
++    if !k.fixes.hit_planar_path_uncapped_open_profiles() {
+         return Ok(true);
+     }
+     profile_closes(k, profiles, tol)
+diff --git a/crates/solidcore/src/primitive/primitive_creation/p2/taper.rs b/crates/solidcore/src/primitive/primitive_creation/p2/taper.rs
+index 66d64c570..32668adac 100644
+--- a/crates/solidcore/src/primitive/primitive_creation/p2/taper.rs
++++ b/crates/solidcore/src/primitive/primitive_creation/p2/taper.rs
+@@ -377,7 +377,7 @@ fn taper(
+     // arcs (opt-in `fixes.taper_tangent_corner_planes`, WR-521): their walls continue
+     // exactly as their tangent planes. Other curves keep the offset method.
+     let mut corner = corner;
+-    let tangent_rule = a.kernel(brep)?.fixes.taper_tangent_corner_planes
++    let tangent_rule = a.kernel(brep)?.fixes.hit_taper_tangent_corner_planes()
+         && corner == OffsetCornerType::LinearExtension;
+     let has_corner = (corner == OffsetCornerType::CurveExtension || tangent_rule)
+         && has_corner(a.kernel(brep)?, &composite, *normal);
+diff --git a/crates/solidcore/src/primitive/primitive_creation/p2/taper_walls.rs b/crates/solidcore/src/primitive/primitive_creation/p2/taper_walls.rs
+index 60117bb03..260246aeb 100644
+--- a/crates/solidcore/src/primitive/primitive_creation/p2/taper_walls.rs
++++ b/crates/solidcore/src/primitive/primitive_creation/p2/taper_walls.rs
+@@ -1600,7 +1600,7 @@ pub(super) fn curvature_keeping_walls(
+     if input.tangent {
+         walls = with_tangent_planes(&walls, n, input.offset, side)?;
+     }
+-    if a.kernel(kernel_brep)?.fixes.taper_wall_closes_at_apex {
++    if a.kernel(kernel_brep)?.fixes.hit_taper_wall_closes_at_apex() {
+         return walls_closing_at_apexes(a, kernel_brep, target, input, walls);
+     }
+     let count = walls.len();
+diff --git a/crates/solidcore/src/primitive/primitive_creation/p3/construct.rs b/crates/solidcore/src/primitive/primitive_creation/p3/construct.rs
+index 0ff5f7d42..866d763f8 100644
+--- a/crates/solidcore/src/primitive/primitive_creation/p3/construct.rs
++++ b/crates/solidcore/src/primitive/primitive_creation/p3/construct.rs
+@@ -498,7 +498,7 @@ impl PrimitiveCreation {
+             if let Some(out) = opt_placements.as_deref_mut() {
+                 *out = profile_motions(&prepared, placement, &placed);
+             }
+-            if options.cap_ends && a.kernel(brep)?.fixes.curve_sweep_caps_at_sweep_ends {
++            if options.cap_ends && a.kernel(brep)?.fixes.hit_curve_sweep_caps_at_sweep_ends() {
+                 // not upstream (WR-404, #411, opt-in)
+                 let (mut starts, mut ends) = sweep_end_curves(
+                     &*a,
+diff --git a/crates/solidcore/src/primitive/primitive_creation/p3/geometry.rs b/crates/solidcore/src/primitive/primitive_creation/p3/geometry.rs
+index 0847983af..1a0152d8f 100644
+--- a/crates/solidcore/src/primitive/primitive_creation/p3/geometry.rs
++++ b/crates/solidcore/src/primitive/primitive_creation/p3/geometry.rs
+@@ -267,7 +267,7 @@ pub fn prepare_curve_sweep(
+     // a planar path starts the frame with its z on the plane's normal; the top is then flat to
+     // the rounding. Opt-in (`Kernel::fixes.sweep_frame_on_planar_path_normal`, WR-407);
+     // upstream keeps the `MakeUnitOrthoVectors` frame.
+-    if k.fixes.sweep_frame_on_planar_path_normal {
++    if k.fixes.hit_sweep_frame_on_planar_path_normal() {
+         let plane = path.is_planar(ZONE_TOL_3D)?;
+         // `SmCurve::IsPlanar(SM_ZONE_TOL_3D, NULL, &sPlaneNormal)` with
+         // `sPlaneNormal.Unitize()` in place before the test.
+@@ -472,7 +472,7 @@ mod tests {
+     #[test]
+     fn issue_434_default_keeps_the_upstream_sweep_frame() -> Result<()> {
+         let k = Kernel::default();
+-        assert!(!k.fixes.sweep_frame_on_planar_path_normal);
++        assert!(!k.fixes.hit_sweep_frame_on_planar_path_normal());
+         let (max_z, _) = issue_434_half_circle_frame(&k)?;
+         assert!(
+             max_z > 1.0,
+diff --git a/crates/solidcore/src/primitive/primitive_creation/p3/ruled.rs b/crates/solidcore/src/primitive/primitive_creation/p3/ruled.rs
+index f191f8972..e04f911da 100644
+--- a/crates/solidcore/src/primitive/primitive_creation/p3/ruled.rs
++++ b/crates/solidcore/src/primitive/primitive_creation/p3/ruled.rs
+@@ -82,7 +82,7 @@ pub fn ruled_surface_from_offset(
+         let other = generators
+             .get(other)
+             .ok_or_else(|| SolidError::sm_err(OP))?;
+-        let pivot = if k.fixes.taper_pivot_nearest_corner {
++        let pivot = if k.fixes.hit_taper_pivot_nearest_corner() {
+             pivot_nearest_corner(source, other, options.same_point_tolerance, &first)?
+         } else {
+             find_pivot_point(source, other, options.same_point_tolerance)?
+diff --git a/crates/solidcore/src/primitive/primitive_creation/p3/sweeps.rs b/crates/solidcore/src/primitive/primitive_creation/p3/sweeps.rs
+index 640863bb2..831d81d7c 100644
+--- a/crates/solidcore/src/primitive/primitive_creation/p3/sweeps.rs
++++ b/crates/solidcore/src/primitive/primitive_creation/p3/sweeps.rs
+@@ -254,7 +254,7 @@ fn join_profile_wire_ends(
+     edges: &[crate::topology::EdgeId],
+ ) -> Result<()> {
+     use crate::topology::{edge, vertex, VertexId};
+-    if !a.kernel(brep)?.fixes.sheet_sweep_joins_profile_wires {
++    if !a.kernel(brep)?.fixes.hit_sheet_sweep_joins_profile_wires() {
+         return Ok(());
+     }
+     a.with_primitive_brep(brep, |k, b| {
+@@ -420,7 +420,7 @@ impl PrimitiveCreation {
+         // 9853e54 deletes the one-curve special case (sm_CreateAnalyticRotationalSweep),
+         // whose whole-circle torus puts its seam a quarter turn from the profile; the
+         // per-curve rule below covers a one-curve profile too
+-        let one_curve_special_case = !a.kernel(brep)?.fixes.revolve_analytic_profile_faces;
++        let one_curve_special_case = !a.kernel(brep)?.fixes.hit_revolve_analytic_profile_faces();
+         if let (true, [Some(curve)]) = (one_curve_special_case, &mut *curves) {
+             if ignored(a.with_primitive_brep(brep, |k, b| {
+                 analytic_rotational_sweep(k, b, curve, axis_base, axis)
+@@ -490,7 +490,7 @@ impl PrimitiveCreation {
+                 if let Some(curve) = slot.as_ref() {
+                     // Not upstream (WR-448, #545): the curve's cylinder, cone,
+                     // sphere or torus, else the surface of revolution
+-                    let analytic = if a.kernel(brep)?.fixes.revolve_analytic_profile_faces {
++                    let analytic = if a.kernel(brep)?.fixes.hit_revolve_analytic_profile_faces() {
+                         let tolerance = a.brep(brep)?.tolerance();
+                         analytic_revolution(
+                             a.kernel(brep)?,
+@@ -529,7 +529,7 @@ impl PrimitiveCreation {
+         }
+         ignore_status(a.stitch_and_orient(brep))?;
+         // not upstream (WR-442, #478, opt-in): a closed shell inside another is its cavity
+-        if a.kernel(brep)?.fixes.revolve_nested_shells_as_cavities {
++        if a.kernel(brep)?.fixes.hit_revolve_nested_shells_as_cavities() {
+             a.with_brep_mut(brep, |k, b, _, env| {
+                 crate::topology::brep::p6::nest_closed_shells_as_cavities(k, b, env)
+             })?;
+@@ -567,7 +567,7 @@ impl PrimitiveCreation {
+             let tolerance = a.brep(brep)?.tolerance();
+             // Not upstream (WR-590, opt-in): no curve meets the axis inside itself
+             // (CheckCurveSweep's SM_SC_ROT_ON_CURVE)
+-            if a.kernel(brep)?.fixes.revolve_splits_curves_on_axis {
++            if a.kernel(brep)?.fixes.hit_revolve_splits_curves_on_axis() {
+                 split_curves_on_axis(a.kernel(brep)?, curves, axis_base, axis, tolerance)?;
+             }
+             a.set_editing(brep, true)?;
+@@ -609,7 +609,7 @@ impl PrimitiveCreation {
+             }
+             let mut rotation = RotationalSweepGeometry::new(axis_base, axis, angle_deg, tolerance);
+             // Not upstream (WR-448, #545): analytic side faces
+-            rotation.set_analytic_revolutions(a.kernel(brep)?.fixes.revolve_analytic_profile_faces);
++            rotation.set_analytic_revolutions(a.kernel(brep)?.fixes.hit_revolve_analytic_profile_faces());
+             let geometry = SweepGeometry::Rotation(rotation);
+             let mut sweep = TopologySweep {
+                 repetitions: options.repetitions,
+diff --git a/crates/solidcore/src/query/face/p2.rs b/crates/solidcore/src/query/face/p2.rs
+index ca14edf1c..78f1d0b70 100644
+--- a/crates/solidcore/src/query/face/p2.rs
++++ b/crates/solidcore/src/query/face/p2.rs
+@@ -2239,7 +2239,7 @@ pub fn curve_on_classify_mut<O: ClassObject>(
+ 
+         // WR-305: an interval running along a boundary edge between two points on it is
+         // on that edge
+-        if k.fixes.classify_edge_interval {
++        if k.fixes.hit_classify_edge_interval() {
+             cc.classify_edge_interval(k, &*objects, ii)?;
+         }
+ 
+diff --git a/crates/solidcore/src/query/face/p3.rs b/crates/solidcore/src/query/face/p3.rs
+index 8604edea9..20a418dba 100644
+--- a/crates/solidcore/src/query/face/p3.rs
++++ b/crates/solidcore/src/query/face/p3.rs
+@@ -428,7 +428,7 @@ pub fn calculate_tight_bounding_box_into(
+     // WR-588 (#1799; tangency-labs/smlib@9d44c1b), opt-in: the face's own extremes inside
+     // its trim (`sm_FaceDirectedMax`), not the surface's global ones alone. The starting
+     // values are the box of the vertices and edges, as the fork's.
+-    if k.fixes.face_tight_box_searches_trim {
++    if k.fixes.hit_face_tight_box_searches_trim() {
+         let (lo, hi) = (face_bbox.min(), face_bbox.max());
+         let x_max = face_directed_max(
+             k,
+diff --git a/crates/solidcore/src/surface/cone/p2.rs b/crates/solidcore/src/surface/cone/p2.rs
+index 00a031bbe..7050578af 100644
+--- a/crates/solidcore/src/surface/cone/p2.rs
++++ b/crates/solidcore/src/surface/cone/p2.rs
+@@ -924,7 +924,7 @@ impl Cone {
+         // against the NURB's linear direction from its top-knot circle, as
+         // IsNurbSurfaceCone builds it; upstream ("Do some correction here") keeps the
+         // bottom-knot circle and the NURB's direction, reversing the cylinder's Z
+-        let flip = inside_out && k.fixes.nurb_cylinder_inside_out_frame;
++        let flip = inside_out && k.fixes.hit_nurb_cylinder_inside_out_frame();
+         let (origin, z_axis) = if flip {
+             (center_top, -z_axis)
+         } else {
+@@ -1093,7 +1093,7 @@ impl Cone {
+         // Not upstream (WR-385, tangency-labs/solidcore#713): with the opt-in, an
+         // SmCylinder's radii within SM_EFF_ZERO_SQRT * (1 + r) are its one radius (their
+         // mean); further apart, the NURB is no longer a cylinder
+-        if self.cylinder && k.fixes.cylinder_rebuild_mean_radius {
++        if self.cylinder && k.fixes.hit_cylinder_rebuild_mean_radius() {
+             if (bot.radius - top.radius).abs() < EFF_ZERO_SQRT * (1.0 + bot.radius) {
+                 let mean = 0.5 * (bot.radius + top.radius);
+                 bot.radius = mean;
+@@ -1325,7 +1325,7 @@ pub fn ellipse_trim_intervals(
+     // (statuses ignored). Opt-in (WR-490): the seam lines span the cone's whole height,
+     // as the end circles and the classification do; only their sweep comes from
+     // `uv_domain`. By default their v range comes from `uv_domain` too, as upstream.
+-    let seam_domain = if k.fixes.ellipse_trim_seam_lines_span_cone_height {
++    let seam_domain = if k.fixes.hit_ellipse_trim_seam_lines_span_cone_height() {
+         let cone_v = cone.rev.anal_uv_domain.v_interval();
+         let sweep = anal_uv_domain.u_interval();
+         Extent2d::from_bounds(sweep.min(), cone_v.min(), sweep.max(), cone_v.max())
+diff --git a/crates/solidcore/src/surface/cone/p3.rs b/crates/solidcore/src/surface/cone/p3.rs
+index b07b248c7..ab192cf2f 100644
+--- a/crates/solidcore/src/surface/cone/p3.rs
++++ b/crates/solidcore/src/surface/cone/p3.rs
+@@ -394,7 +394,7 @@ impl Cone {
+                 let mut tangent = distance.abs() >= bot_radius
+                     || (distance.abs() > bot_radius - tol
+                         && bot_radius * bot_radius - distance * distance < tol * tol);
+-                if k.fixes.cylinder_plane_tangent_within_tolerance {
++                if k.fixes.hit_cylinder_plane_tangent_within_tolerance() {
+                     let zone_tol = zone_tols[0].unwrap_or(0.0).max(zone_tols[1].unwrap_or(0.0));
+                     tangent = tangent || distance.abs() > bot_radius - zone_tol;
+                 }
+@@ -674,7 +674,7 @@ impl Cone {
+             if !self.is_cylinder() || !other.is_cylinder() {
+                 return Ok(true);
+             }
+-            let (mut min, mut max, other_min, other_max) = if k.fixes.cone_parallel_line_domains {
++            let (mut min, mut max, other_min, other_max) = if k.fixes.hit_cone_parallel_line_domains() {
+                 // Face domains can be shorter than either underlying cylinder.
+                 // Work relative to `bottom`, as the circle/line construction below
+                 // does. STEP conversion handles swapped UV and inside-out surfaces;
+@@ -771,7 +771,7 @@ impl Cone {
+                 // WR-259). The opt-in fix tests the middle instead.
+                 // The independent domain-clipping option above also keeps overlaps
+                 // away from this full-span midpoint and shortens their output lines.
+-                let test_point = if k.fixes.cone_parallel_line_midpoint {
++                let test_point = if k.fixes.hit_cone_parallel_line_midpoint() {
+                     line_point + 0.5 * (max - min) * axis
+                 } else {
+                     line_point
+@@ -1337,7 +1337,7 @@ mod tests {
+         for midpoint in [false, true] {
+             for domains in [false, true] {
+                 let mut k = Kernel::default();
+-                assert!(!k.fixes.cone_parallel_line_domains);
++                assert!(!k.fixes.hit_cone_parallel_line_domains());
+                 k.fixes.cone_parallel_line_midpoint = midpoint;
+                 k.fixes.cone_parallel_line_domains = domains;
+                 let a = cylinder(&k, Vec3::ZERO, false, false, false);
+diff --git a/crates/solidcore/src/surface/offset_surface.rs b/crates/solidcore/src/surface/offset_surface.rs
+index e6329a0d2..cd342d824 100644
+--- a/crates/solidcore/src/surface/offset_surface.rs
++++ b/crates/solidcore/src/surface/offset_surface.rs
+@@ -1288,7 +1288,7 @@ impl OffsetSurface {
+                 // extend original base surface so that it contains given sUV
+                 // (`fixes.offset_extension_from_base`: always the base, however the
+                 // extension was made before; the extension only sets a lower bound.)
+-                let from_base = k.fixes.offset_extension_from_base;
++                let from_base = k.fixes.hit_offset_extension_from_base();
+                 let original = if use_ext && !from_base {
+                     ext.current()
+                 } else {
+diff --git a/crates/solidcore/src/surface/sphere.rs b/crates/solidcore/src/surface/sphere.rs
+index 922ddd568..4a5f4b7b1 100644
+--- a/crates/solidcore/src/surface/sphere.rs
++++ b/crates/solidcore/src/surface/sphere.rs
+@@ -1156,7 +1156,7 @@ impl Sphere {
+         }
+ 
+         // See if we are intersecting at a singularity point
+-        let touching = if k.fixes.sphere_small_circle_not_touching {
++        let touching = if k.fixes.hit_sphere_small_circle_not_touching() {
+             // the circle collapses to a point only when its radius sqrt(R^2 - d^2) is
+             // within the tolerance (the fork's tangency-labs/smlib@30d25bf)
+             let gap = self.radius - dist_to_plane;
+@@ -1299,7 +1299,7 @@ impl Sphere {
+         }
+ 
+         // Take care of touching situations
+-        let (touching, touching_inside) = if k.fixes.sphere_small_circle_not_touching {
++        let (touching, touching_inside) = if k.fixes.hit_sphere_small_circle_not_touching() {
+             // the circle collapses to a point only when its radius h is within the
+             // tolerance: (2 d h)^2 = (d+r1+r2)(r1+r2-d)(d-r1+r2)(d+r1-r2), each factor
+             // formed directly (the fork's tangency-labs/smlib@30d25bf)
+@@ -2082,7 +2082,7 @@ impl Sphere {
+         let angles_v = iso_v.angles.unwrap_or(Extent1d::new());
+         // not upstream (WR-493, opt-in; tangency-labs/smlib@7ea6a96): the half-meridian
+         // tolerance compensates for degrees, as RebuildSTEPFromNURBParameters [B279]
+-        let half_meridian_tol = if k.fixes.found_torus_sphere_keep_tested_nurb {
++        let half_meridian_tol = if k.fixes.hit_found_torus_sphere_keep_tested_nurb() {
+             360.0 * EFF_ZERO
+         } else {
+             EFF_ZERO
+@@ -2238,7 +2238,7 @@ impl Sphere {
+ 
+         // not upstream (WR-493, opt-in; tangency-labs/smlib@7ea6a96): the sphere keeps
+         // the NURB tested (SetFromGwNurb, whose rebuild's status is ignored)
+-        if k.fixes.found_torus_sphere_keep_tested_nurb {
++        if k.fixes.hit_found_torus_sphere_keep_tested_nurb() {
+             let nurb = test
+                 .gw_nurb()
+                 .ok_or_else(|| SolidError::null_pointer(OP_NURB_SPHERE))?;
+diff --git a/crates/solidcore/src/surface/surf_of_revolution/p2.rs b/crates/solidcore/src/surface/surf_of_revolution/p2.rs
+index 2acab3d37..5df28d878 100644
+--- a/crates/solidcore/src/surface/surf_of_revolution/p2.rs
++++ b/crates/solidcore/src/surface/surf_of_revolution/p2.rs
+@@ -597,7 +597,7 @@ impl SurfOfRevolution {
+         // curve's whole extent along the axis, on both sides of the frame's origin (it ran
+         // from the origin along +z only and missed an offset crossing the axis below it),
+         // and the part kept is the one on the generatrix's side (positive radius).
+-        let both_sides = k.fixes.revolution_offset_axis_both_sides;
++        let both_sides = k.fixes.hit_revolution_offset_axis_both_sides();
+         let (axis_start, axis_end) = if both_sides {
+             let (mut axial_min, mut axial_max) = (BIG_DOUBLE, -BIG_DOUBLE);
+             for corner in bbox.corners() {
+diff --git a/crates/solidcore/src/surface/surface/approximate.rs b/crates/solidcore/src/surface/surface/approximate.rs
+index c84f6a1b9..e5c394dd9 100644
+--- a/crates/solidcore/src/surface/surface/approximate.rs
++++ b/crates/solidcore/src/surface/surface/approximate.rs
+@@ -311,7 +311,7 @@ impl Surface {
+             // knot of full multiplicity (control points 3 apart per span). A starter
+             // copied from a root B-spline with simple inner knots is put in that form
+             // first, exactly, by knot insertion.
+-            if k.fixes.approximate_surface_bezier_starter {
++            if k.fixes.hit_approximate_surface_bezier_starter() {
+                 for (param, deg) in [(SurfParamType::U, u_deg), (SurfParamType::V, v_deg)] {
+                     let (knots, mult) = approx_surf.knots(param, None)?;
+                     more_knots.clear();
+@@ -362,7 +362,7 @@ impl Surface {
+                             if u_min + iub >= num_ctrl_u || v_min + ivb >= num_ctrl_v {
+                                 // `Kernel::fixes.approximate_surface_bezier_starter`
+                                 // (WR-573): an error, not success with no surface
+-                                if k.fixes.approximate_surface_bezier_starter {
++                                if k.fixes.hit_approximate_surface_bezier_starter() {
+                                     return Err(SolidError::sm_err(OP));
+                                 }
+                                 // SE(SM_ERR): some problem here with knots; upstream
+diff --git a/crates/solidcore/src/surface/surface/assert_valid.rs b/crates/solidcore/src/surface/surface/assert_valid.rs
+index 65dbceba7..e6c61cb84 100644
+--- a/crates/solidcore/src/surface/surface/assert_valid.rs
++++ b/crates/solidcore/src/surface/surface/assert_valid.rs
+@@ -683,7 +683,7 @@ pub fn has_internal_pole(k: &Kernel, s: &Surface, b: &BSplineSurface, tol: f64)
+         let row_cnt_u = degree_u - (mult(&mults_u, ii)? - 1);
+         // upstream moves one row further for each repeated copy of the knot; with the opt-in
+         // the row through the knot (WR-505, #1515; tangency-labs/smlib#41)
+-        let cp_index_u = if k.fixes.internal_pole_row_through_knot {
++        let cp_index_u = if k.fixes.hit_internal_pole_row_through_knot() {
+             knt_cnt_u - 1 - degree_u
+         } else {
+             knt_cnt_u - row_cnt_u - 1
+@@ -741,7 +741,7 @@ pub fn has_internal_pole(k: &Kernel, s: &Surface, b: &BSplineSurface, tol: f64)
+ 
+         let row_cnt_v = degree_v - (mult(&mults_v, ii)? - 1);
+         // as the U walk: the row through the knot with the opt-in (WR-505, #1515)
+-        let cp_index_v = if k.fixes.internal_pole_row_through_knot {
++        let cp_index_v = if k.fixes.hit_internal_pole_row_through_knot() {
+             knt_cnt_v - 1 - degree_v
+         } else {
+             knt_cnt_v - row_cnt_v - 1
+@@ -1503,7 +1503,7 @@ fn surf_of_revolution_assert_valid(k: &Kernel, s: &Surface, r: &mut Reporter<'_>
+     let ivl_u = anal.u_interval();
+     rtn &= r.report(
+         CLASS,
+-        if k.fixes.torus_check_reads_v_interval {
++        if k.fixes.hit_torus_check_reads_v_interval() {
+             13
+         } else {
+             2
+@@ -1719,7 +1719,7 @@ fn surf_of_extrusion_assert_valid(k: &Kernel, s: &Surface, r: &mut Reporter<'_>)
+     // 4. check that m_vOrigin is a point on m_pGenCurve
+     let gen_ivl = gen.natural_interval();
+     let origin = ext.origin();
+-    let origin_tol = if k.fixes.extrusion_origin_scaled_zero {
++    let origin_tol = if k.fixes.hit_extrusion_origin_scaled_zero() {
+         EFF_ZERO * (1.0 + origin.max_dimension())
+     } else {
+         EFF_ZERO
+@@ -2077,7 +2077,7 @@ fn torus_assert_valid(k: &Kernel, s: &Surface, r: &mut Reporter<'_>) -> Result<b
+ 
+     let anal = t.base().step_uv_domain();
+     if major < minor {
+-        if k.fixes.torus_check_spindle_apex {
++        if k.fixes.hit_torus_check_spindle_apex() {
+             /*  5 */
+             // Not upstream (WR-539, the fork's tangency-labs/smlib@daba678): a spindle
+             // torus's minor circles cross the axis where R + r cos(V) = 0, at the apexes
+@@ -2118,7 +2118,7 @@ fn torus_assert_valid(k: &Kernel, s: &Surface, r: &mut Reporter<'_>) -> Result<b
+ 
+     // Not upstream (WR-538, the fork's tangency-labs/smlib@0cd9d08, #482): the U and V
+     // tests report as 3 and 4 (their labels), and the V test reads the V interval
+-    let fixed_ids = k.fixes.torus_check_reads_v_interval;
++    let fixed_ids = k.fixes.hit_torus_check_reads_v_interval();
+     let ivl_u = anal.u_interval();
+     rtn &= r.report(
+         CLASS,
+diff --git a/crates/solidcore/src/surface/surface/p1.rs b/crates/solidcore/src/surface/surface/p1.rs
+index 7c232a81f..1154b97aa 100644
+--- a/crates/solidcore/src/surface/surface/p1.rs
++++ b/crates/solidcore/src/surface/surface/p1.rs
+@@ -2512,7 +2512,7 @@ impl Surface {
+             // `Kernel::fixes.revolution_round_offset_collapses` (WR-567): an offset that
+             // shrinks the generatrix arc onto its centre or past it is no surface
+             SurfaceKind::SurfOfRevolution(s)
+-                if k.fixes.revolution_round_offset_collapses
++                if k.fixes.hit_revolution_round_offset_collapses()
+                     && self.revolution_offset_collapses(
+                         k,
+                         s,
+@@ -2570,7 +2570,7 @@ impl Surface {
+             SurfaceKind::Cone(s) => s.offset_collapses(k, signed_offset_distance, tol),
+             SurfaceKind::Sphere(s) => s.offset_collapses(signed_offset_distance, tol),
+             SurfaceKind::Torus(s) => s.offset_collapses(signed_offset_distance, tol),
+-            SurfaceKind::SurfOfRevolution(s) if k.fixes.revolution_round_offset_collapses => {
++            SurfaceKind::SurfOfRevolution(s) if k.fixes.hit_revolution_round_offset_collapses() => {
+                 self.revolution_offset_collapses(k, s, signed_offset_distance, tol)?
+             }
+             _ => false,
+diff --git a/crates/solidcore/src/surface/surface/p2.rs b/crates/solidcore/src/surface/surface/p2.rs
+index 3de72451f..9b28c5d9f 100644
+--- a/crates/solidcore/src/surface/surface/p2.rs
++++ b/crates/solidcore/src/surface/surface/p2.rs
+@@ -3741,7 +3741,7 @@ impl Surface {
+ 
+         // not upstream (WR-405, #892, opt-in): an inner loop touching another loop of
+         // its face at a vertex is part of that loop
+-        if k.fixes.join_touching_loops {
++        if k.fixes.hit_join_touching_loops() {
+             join_touching_loops(
+                 k,
+                 curves,
+diff --git a/crates/solidcore/src/surface/surface/p3.rs b/crates/solidcore/src/surface/surface/p3.rs
+index 599e4c7c3..7b5bc41c4 100644
+--- a/crates/solidcore/src/surface/surface/p3.rs
++++ b/crates/solidcore/src/surface/surface/p3.rs
+@@ -962,7 +962,7 @@ impl Surface {
+         // extension degrades with distance; for a plane, grow the search domain to the
+         // orthogonal projection of the other surface's bounding box, which holds every
+         // point the checks below drop.
+-        if k.fixes.boolean2d_plane_covers_far_faces {
++        if k.fixes.hit_boolean2d_plane_covers_far_faces() {
+             if let SurfaceKind::Plane(plane) = self.kind() {
+                 let mut other_box = other.calculate_tight_bounding_box(k, &other_dom)?;
+                 other_box.expand_absolute(tol);
+@@ -1276,7 +1276,7 @@ impl Surface {
+         // merge will use: its normal must not vanish or turn back between neighbouring
+         // samples of a grid over that domain. Opt-in (`Kernel::fixes.cover_refuses_folded_continuation`,
+         // WR-407); upstream merges onto the continuation.
+-        if k.fixes.cover_refuses_folded_continuation
++        if k.fixes.hit_cover_refuses_folded_continuation()
+             && out_of_bounds_enabled(self).is_some()
+             && !update_domain.is_contained_by(&orig_domain, 0.0)
+         {
+@@ -1986,7 +1986,7 @@ mod tests {
+     #[test]
+     fn issue_434_default_refuses_the_fold_of_a_planar_sheet() -> Result<()> {
+         let k = Kernel::default();
+-        assert!(!k.fixes.cover_refuses_folded_continuation);
++        assert!(!k.fixes.hit_cover_refuses_folded_continuation());
+         let (covered, u_max) = issue_434_cover_across_a_fold(&k)?;
+         assert!(
+             !covered.success,
+diff --git a/crates/solidcore/src/surface/surface/p7.rs b/crates/solidcore/src/surface/surface/p7.rs
+index 5c124c796..19d7da614 100644
+--- a/crates/solidcore/src/surface/surface/p7.rs
++++ b/crates/solidcore/src/surface/surface/p7.rs
+@@ -651,7 +651,7 @@ pub fn base_is_closed<S: SurfaceEvaluate + ?Sized>(
+                     },
+                     CONTINUITY_ANGLE,
+                     &ContinuityOptions {
+-                        geometric_g2: k.fixes.geometric_g2_continuity,
++                        geometric_g2: k.fixes.hit_geometric_g2_continuity(),
+                     },
+                 )?;
+ 
+@@ -970,7 +970,7 @@ impl Surface {
+ 
+         // optional output (upstream masks the return value while testing: `if (lRtn &=
+         // bit)`; the opt-in `Kernel::fixes.flat_corners_test_bits` tests each bit, WR-384)
+-        let test_bits = k.fixes.flat_corners_test_bits;
++        let test_bits = k.fixes.hit_flat_corners_test_bits();
+         if let Some(pts) = points.as_mut() {
+             for ((c, bit), p) in corners.iter().zip(FLAT_CORNER_BITS).zip(pts.iter_mut()) {
+                 let flat = if test_bits {
+@@ -2983,7 +2983,7 @@ fn singular_param_solve(
+         EFF_ZERO,
+     );
+     let mut ls = crate::geom::local_solve1d::LocalSolve1d::with_interval(*ivl, false);
+-    ls.set_failed_guess_no_sign_change(k.fixes.oscillating_skips_failed_guesses);
++    ls.set_failed_guess_no_sign_change(k.fixes.hit_oscillating_skips_failed_guesses());
+     let r = ls.solve_it(&mut efo, start, tol)?;
+     Ok((r.found, r.t))
+ }
+diff --git a/crates/solidcore/src/surface/surface_point_solve/p2.rs b/crates/solidcore/src/surface/surface_point_solve/p2.rs
+index 0df6a91b1..aaafd4c2d 100644
+--- a/crates/solidcore/src/surface/surface_point_solve/p2.rs
++++ b/crates/solidcore/src/surface/surface_point_solve/p2.rs
+@@ -292,7 +292,7 @@ impl SurfPtGlobalSolver<'_> {
+                     }
+                 }
+                 if suspicious
+-                    && k.fixes.point_solve_keeps_triangle_guess
++                    && k.fixes.hit_point_solve_keeps_triangle_guess()
+                     && op != SolverOperation::Signed3dDirectedMaximize
+                 {
+                     triangle = Some((b.domain().clamp_point(uv), best_idx_u, best_idx_v));
+diff --git a/crates/solidcore/src/surface/torus.rs b/crates/solidcore/src/surface/torus.rs
+index 55ca63b88..4479d2143 100644
+--- a/crates/solidcore/src/surface/torus.rs
++++ b/crates/solidcore/src/surface/torus.rs
+@@ -287,7 +287,7 @@ impl Torus {
+         // (the self-intersection test of a major radius below the minor radius only
+         // warns upstream); not upstream (WR-500, opt-in): the surface is inside out
+         // with its generator
+-        let keeps_inside_out = k.fixes.torus_keeps_inside_out;
++        let keeps_inside_out = k.fixes.hit_torus_keeps_inside_out();
+         Ok(Self {
+             base,
+             major_radius,
+@@ -1068,7 +1068,7 @@ impl Torus {
+         // not upstream (WR-501, #1470, opt-in; tangency-labs/smlib@6136a04): the major
+         // radius runs from the torus origin, not from the first sweep circle's centre,
+         // which lies off the equator when the tube does not start there
+-        let major_vec = if k.fixes.torus_major_radius_from_origin {
++        let major_vec = if k.fixes.hit_torus_major_radius_from_origin() {
+             other_frame.origin() - torus_origin
+         } else {
+             other_frame.origin() - ref_frame.origin()
+@@ -1103,7 +1103,7 @@ impl Torus {
+ 
+         // get GenCurve min and max angles measured from each GenCurve's origin and start
+         // vector
+-        let (gen_angle_min, gen_angle_max) = if k.fixes.torus_signed_gen_curve_interval {
++        let (gen_angle_min, gen_angle_max) = if k.fixes.hit_torus_signed_gen_curve_interval() {
+             // not upstream (WR-408, tangency-labs/solidcore#1112, opt-in): signed
+             // angles; a failed angle is not a torus, as the fork. Zero is SM_EFF_ZERO_DEG
+             // (tangency-labs/smlib@40344bf, #1471): the ends carry the rounding of their
+@@ -1201,7 +1201,7 @@ impl Torus {
+         // not upstream (WR-493, opt-in; the SolidCraft fork's tangency-labs/smlib@7ea6a96):
+         // the torus keeps the NURB tested (SetFromGwNurb, whose rebuild's status is
+         // ignored)
+-        if k.fixes.found_torus_sphere_keep_tested_nurb {
++        if k.fixes.hit_found_torus_sphere_keep_tested_nurb() {
+             let nurb = test
+                 .gw_nurb()
+                 .ok_or_else(|| SolidError::null_pointer(OP_NURB_TORUS))?;
+@@ -1324,7 +1324,7 @@ impl Torus {
+         let vec_max = nurb_max_point - max_origin;
+ 
+         // not upstream (WR-408, tangency-labs/solidcore#1112, opt-in): signed angles
+-        let (gen_angle_min, gen_angle_max) = if k.fixes.torus_signed_gen_curve_interval {
++        let (gen_angle_min, gen_angle_max) = if k.fixes.hit_torus_signed_gen_curve_interval() {
+             torus_gen_curve_interval(
+                 [start_for_min_angle, vec_min],
+                 [start_for_max_angle, vec_max],
+@@ -1401,7 +1401,7 @@ impl Torus {
+         self.minor_radius = min_rad;
+         self.inside_out = inside_out;
+         // not upstream (WR-500, opt-in): its copies keep the flag
+-        self.keeps_inside_out |= k.fixes.torus_keeps_inside_out;
++        self.keeps_inside_out |= k.fixes.hit_torus_keeps_inside_out();
+         self.base.planar_generator = true;
+         self.base.position = ref_frame;
+         self.base.swap_uv = swap_uv;
+@@ -1478,7 +1478,7 @@ impl Torus {
+         // init output object
+         let mut torus = Self::empty();
+         // not upstream (WR-500, opt-in): its copies keep the flag read
+-        torus.keeps_inside_out = k.fixes.torus_keeps_inside_out;
++        torus.keeps_inside_out = k.fixes.hit_torus_keeps_inside_out();
+ 
+         if db.file_type() == FileType::Ascii {
+             if let Some(s) = db.in_stream_mut() {
+@@ -1585,7 +1585,7 @@ fn iso_curve(
+         let mut x_axis = torus_z_axis.cross(nurb_min_vec.cross(torus_z_axis));
+         let mut length = x_axis.length();
+         if length < EFF_ZERO_SQRT {
+-            if k.fixes.torus_iso_circle_axis_from_midpoint {
++            if k.fixes.hit_torus_iso_circle_axis_from_midpoint() {
+                 // WR-504 (#1514, opt-in): the direction comes from the mid point, as the
+                 // fallback intends; it is read now, so a failed evaluation propagates (the
+                 // fork's SER, smlib@672a437ee; v1.0.1 ignores it)
+diff --git a/crates/solidcore/src/sweep/analytic_revolution.rs b/crates/solidcore/src/sweep/analytic_revolution.rs
+index 1dcf68491..bbb1f723d 100644
+--- a/crates/solidcore/src/sweep/analytic_revolution.rs
++++ b/crates/solidcore/src/sweep/analytic_revolution.rs
+@@ -96,14 +96,14 @@ pub fn analytic_revolution(
+         .max(ends.end.max_dimension())
+         .max(base_pt.max_dimension());
+     // WR-471: the caller's own tolerance, which decides if an arc is centred on the axis
+-    let axis_tol = if k.fixes.revolve_arc_centre_near_axis_is_sphere {
++    let axis_tol = if k.fixes.hit_revolve_arc_centre_near_axis_is_sphere() {
+         tol
+     } else {
+         0.0
+     };
+     // WR-552: the caller's own tolerance, within which a circle reaching the axis is
+     // the horn torus's
+-    let horn_tol = if k.fixes.revolve_arc_touching_axis_is_horn_torus {
++    let horn_tol = if k.fixes.hit_revolve_arc_touching_axis_is_horn_torus() {
+         tol
+     } else {
+         0.0
+diff --git a/crates/solidcore/src/topology/brep/local_operation.rs b/crates/solidcore/src/topology/brep/local_operation.rs
+index c6164d9af..b8ed07c23 100644
+--- a/crates/solidcore/src/topology/brep/local_operation.rs
++++ b/crates/solidcore/src/topology/brep/local_operation.rs
+@@ -123,7 +123,7 @@ pub fn local_operation(
+     // faces' edges are found by extending the neighbouring surfaces to meet them, by a
+     // distance sized from this box: sized from the original body alone, a face moved
+     // further than about its size away left the extended neighbours short of it.
+-    if k.fixes.local_operation_box_holds_new_surfaces {
++    if k.fixes.hit_local_operation_box_holds_new_surfaces() {
+         for (j, slot) in placed.iter().enumerate() {
+             let surface = match (given.get(j).and_then(Option::as_ref), slot) {
+                 (Some(surface), _) => surface,
+@@ -169,7 +169,7 @@ pub fn local_operation(
+     let offset = executive
+         .do_extended_offset(k, Some(&mut *b), notifications)
+         .map_err(|e| {
+-            if e.is_unported() || k.fixes.local_operation_offset_status {
++            if e.is_unported() || k.fixes.hit_local_operation_offset_status() {
+                 e
+             } else {
+                 SolidError::sm_err(OP)
+diff --git a/crates/solidcore/src/topology/brep/p2.rs b/crates/solidcore/src/topology/brep/p2.rs
+index 80eaec3e9..d660e6bf6 100644
+--- a/crates/solidcore/src/topology/brep/p2.rs
++++ b/crates/solidcore/src/topology/brep/p2.rs
+@@ -1975,7 +1975,7 @@ pub fn make_edge_topology(
+             let vu = shell_vertexuse(b, end_shell)?;
+             delete_vertexuse(b, vu)?;
+             shell_clear_members(b, end_shell)?;
+-        } else if k.fixes.boolean_wire_edge_keeps_faceuse_shell
++        } else if k.fixes.hit_boolean_wire_edge_keeps_faceuse_shell()
+             && b.shell(start_shell)?.is_wire_shell()
+             && b.shell(end_shell)?.is_faceuse_shell()
+         {
+diff --git a/crates/solidcore/src/topology/brep/p5.rs b/crates/solidcore/src/topology/brep/p5.rs
+index e36c8d8b4..64d44056f 100644
+--- a/crates/solidcore/src/topology/brep/p5.rs
++++ b/crates/solidcore/src/topology/brep/p5.rs
+@@ -947,7 +947,7 @@ fn exact_bspline_of_edge(
+         )?;
+         return Ok(Some(copy));
+     }
+-    if !k.fixes.delete_vertex_joins_seam_iso_curve {
++    if !k.fixes.hit_delete_vertex_joins_seam_iso_curve() {
+         return Ok(None);
+     }
+     let CurveKind::CrvOnSurf(cos) = curve.kind() else {
+diff --git a/crates/solidcore/src/topology/brep/p6.rs b/crates/solidcore/src/topology/brep/p6.rs
+index 45d78eb69..83e525da3 100644
+--- a/crates/solidcore/src/topology/brep/p6.rs
++++ b/crates/solidcore/src/topology/brep/p6.rs
+@@ -1476,7 +1476,7 @@ fn split_closed(
+     // WR-584 (opt-in, fork tangency-labs/smlib@69c5198): search from both sides at
+     // once. Same answer; no walk across the whole shell, no marks (nothing below
+     // reads the walk's marks: the replacement claims a new mark before it moves).
+-    let closed = if k.fixes.boolean_new_face_closure_both_sides {
++    let closed = if k.fixes.hit_boolean_new_face_closure_both_sides() {
+         tr::closure_traversal_from_both_sides(brep, start)?
+     } else {
+         tr::closure_traversal(k, brep, marks, start, lock, None)?
+@@ -2020,7 +2020,7 @@ pub(crate) fn nest_closed_shells_as_cavities(
+     // the profile: the ring it turns into lies inside the ring around it, in that ring's
+     // region) and left the region inside the inner shell material. Where every shell is
+     // closed the regions alternate material and void from the infinite region in.
+-    if k.fixes.revolve_holed_profile_void && brep.region(infinite)?.shells.len() < 2 {
++    if k.fixes.hit_revolve_holed_profile_void() && brep.region(infinite)?.shells.len() < 2 {
+         let regions = super::p1::regions(brep, None)?;
+         if regions.len() <= 2 {
+             return Ok(());
+diff --git a/crates/solidcore/src/topology/brep/p9.rs b/crates/solidcore/src/topology/brep/p9.rs
+index bf04e4254..5042be3c2 100644
+--- a/crates/solidcore/src/topology/brep/p9.rs
++++ b/crates/solidcore/src/topology/brep/p9.rs
+@@ -1924,7 +1924,7 @@ pub fn make_edge_in_face_with_vu_with_curve_identity(
+     vertex::refresh_tolerance(b, start_vertex, false)?;
+     vertex::refresh_tolerance(b, end_vertex, false)?;
+     // Opt-in (WR-469): each vertex's tolerance grows to twice its gap to the new edge's end.
+-    if k.fixes.new_edge_vertex_tolerance_covers_gap {
++    if k.fixes.hit_new_edge_vertex_tolerance_covers_gap() {
+         let record = b.edge(edge_id)?;
+         let curve = required(record.curve.as_ref(), "new edge without curve")?;
+         let (curve_start, curve_end) = (
+@@ -2236,7 +2236,7 @@ fn redistribute_inner_loops(
+     // Opt-in (WR-527, #1526/#1527): on a plane the region a loop bounds lies within the
+     // loop's box, so an inner loop sampled outside the box of the new face's outer loop
+     // is not in the new face and stays: only when every edge has a box.
+-    let new_outer_box = if k.fixes.boolean_skips_faces_apart {
++    let new_outer_box = if k.fixes.hit_boolean_skips_faces_apart() {
+         new_face_outer_box(k, b, face, new_face)?
+     } else {
+         None
+diff --git a/crates/solidcore/src/topology/brep/validation/assert_valid/edge.rs b/crates/solidcore/src/topology/brep/validation/assert_valid/edge.rs
+index 90bfdf88d..5b2dfb0b1 100644
+--- a/crates/solidcore/src/topology/brep/validation/assert_valid/edge.rs
++++ b/crates/solidcore/src/topology/brep/validation/assert_valid/edge.rs
+@@ -358,7 +358,7 @@ fn radial_order(
+     let seq_param = extent.evaluate(0.456);
+     let mut step_off = false;
+     let mut step_off_dist = 0.0;
+-    if k.fixes.edge_check_orders_tangent_faces {
++    if k.fixes.hit_edge_check_orders_tangent_faces() {
+         step_off_dist = 20.0 * tedge::tolerance(b, e)?;
+         let tie_dot = (ANG_TOL_DEG * PI / 180.0).cos();
+         let num_eus = b.edge(e)?.edgeuses.len();
+@@ -815,7 +815,7 @@ pub(super) fn edgeuse(
+         let level = cx.rep.level;
+         // not upstream (WR-560, opt-in): the trim is measured on its face's surface
+         // (`GetEdgeuse()->GetFace()->GetSurface()`)
+-        let trim_surface = if k.fixes.uv_trim_checks_on_surface {
++        let trim_surface = if k.fixes.hit_uv_trim_checks_on_surface() {
+             match eu1::face(b, eu)? {
+                 Some(f) => b
+                     .face(f)?
+diff --git a/crates/solidcore/src/topology/brep/validation/pointers.rs b/crates/solidcore/src/topology/brep/validation/pointers.rs
+index 121b74385..de6dc709c 100644
+--- a/crates/solidcore/src/topology/brep/validation/pointers.rs
++++ b/crates/solidcore/src/topology/brep/validation/pointers.rs
+@@ -1235,7 +1235,7 @@ fn edge_geometry(
+                 }
+             }
+             // not upstream (WR-406, #891, opt-in): the turn judged on the face's surface
+-            let surface = if k.fixes.uv_trim_reversal_on_surface {
++            let surface = if k.fixes.hit_uv_trim_reversal_on_surface() {
+                 Some(required(b.face(f)?.surface.as_ref())?.clone_for_evaluation()?)
+             } else {
+                 None
+@@ -1487,7 +1487,7 @@ mod issue_891_tests {
+     /// for a reversal and moves its second control point onto the chord.
+     #[test]
+     fn validate_pointers_straightens_the_exact_trim_by_default() {
+-        assert!(!Kernel::default().fixes.uv_trim_reversal_on_surface);
++        assert!(!Kernel::default().fixes.hit_uv_trim_reversal_on_surface());
+         let (status, before, after) = validate_half_disc(false);
+         assert_eq!(status, SUCCESS);
+         assert_eq!(before.len(), 2);
+diff --git a/crates/solidcore/src/topology/edge.rs b/crates/solidcore/src/topology/edge.rs
+index 7bda74c7b..4cf92f3f4 100644
+--- a/crates/solidcore/src/topology/edge.rs
++++ b/crates/solidcore/src/topology/edge.rs
+@@ -2193,10 +2193,10 @@ pub fn reverse_orientation(k: &Kernel, b: &mut Brep, e: EdgeId) -> Result<()> {
+     if let Some(c) = b.edge_mut(e)?.curve.as_mut() {
+         match c.reverse_parameterization(k, &old_ivl) {
+             Ok(n) => new_ivl = n,
+-            Err(err) if k.fixes.edge_reversal_keeps_failed_edge => return Err(err),
++            Err(err) if k.fixes.hit_edge_reversal_keeps_failed_edge() => return Err(err),
+             Err(err) => failed(err)?,
+         }
+-    } else if k.fixes.edge_reversal_keeps_failed_edge {
++    } else if k.fixes.hit_edge_reversal_keeps_failed_edge() {
+         // nothing reversed the interval: the edge keeps it (WR-260 addendum)
+         new_ivl = old_ivl;
+     }
+@@ -2896,7 +2896,7 @@ pub fn blend_edgeuse(k: &Kernel, b: &mut Brep, e: EdgeId) -> Result<Option<Edgeu
+     // (WR-570, fork b7ec55b) only when their binormals point away from each other (the
+     // faces continue each other): binormals pointing the same way are a cusp (a knife
+     // edge), whose ball lies back from the edge, filleted like any other edge
+-    let cusp = k.fixes.fillet_knife_edge_rounds && bin_vec.dot(bin_vec2) > 0.0;
++    let cusp = k.fixes.hit_fillet_knife_edge_rounds() && bin_vec.dot(bin_vec2) > 0.0;
+     let dot1 = bin_vec2.dot(fu_normal);
+     if !cusp && dot1.abs() < max_dot {
+         return Ok(None); // Tangent: unable to fillet
+diff --git a/crates/solidcore/src/topology/edgeuse/p1.rs b/crates/solidcore/src/topology/edgeuse/p1.rs
+index 2d5a6fa14..5e2d590e7 100644
+--- a/crates/solidcore/src/topology/edgeuse/p1.rs
++++ b/crates/solidcore/src/topology/edgeuse/p1.rs
+@@ -1111,7 +1111,7 @@ pub fn calc_edge_ccw_edge_gap(
+ /// evaluation (only [`SolidError::Unported`] propagates; with the opt-in
+ /// [`crate::kernel::UpstreamFixes::topology_failed_evaluations_propagate`] every error).
+ fn point_or_undef(k: &Kernel, r: Result<Point3>) -> Result<Point3> {
+-    if k.fixes.topology_failed_evaluations_propagate {
++    if k.fixes.hit_topology_failed_evaluations_propagate() {
+         return r;
+     }
+     Ok(crate::error::ignored(r)?.unwrap_or(Vec3::UNDEF))
+@@ -1182,7 +1182,7 @@ pub fn start_point_uv_loop_gap(k: &Kernel, b: &Brep, eu: EdgeuseId) -> Result<f6
+ 
+         // drop point to Surface (statuses ignored, as upstream; with the opt-in fix a
+         // failed drop supplies neither a valid point nor the next guess)
+-        let fix = k.fixes.topology_failed_evaluations_propagate;
++        let fix = k.fixes.hit_topology_failed_evaluations_propagate();
+         let domain = surface.natural_uv_domain_with_nurb(k)?;
+         let start_opts = DropPointOptions {
+             operation: SolverOperation::Minimize,
+@@ -1513,7 +1513,7 @@ pub fn calc_dist_and_dev<'s, O: SolutionObject>(
+     let [u, v, ..] = sol.start.parameters;
+     let uv = Point2::new(u, v);
+     let derivs = evaluate_1st_derivatives(k, srf, uv, Side::Left, Side::Left);
+-    let (s_pt, s_su, s_sv) = if k.fixes.topology_failed_evaluations_propagate {
++    let (s_pt, s_su, s_sv) = if k.fixes.hit_topology_failed_evaluations_propagate() {
+         derivs?
+     } else {
+         crate::error::ignored(derivs)?.unwrap_or((Vec3::UNDEF, Vec3::UNDEF, Vec3::UNDEF))
+diff --git a/crates/solidcore/src/topology/edgeuse/p3.rs b/crates/solidcore/src/topology/edgeuse/p3.rs
+index fae7390ed..710bd1e82 100644
+--- a/crates/solidcore/src/topology/edgeuse/p3.rs
++++ b/crates/solidcore/src/topology/edgeuse/p3.rs
+@@ -766,7 +766,7 @@ pub fn create_uv_trim_curve(
+             //   UVTrimCurve. But it's not the worst idea either, it does not create gaps
+             //   between the Edge and its vertices - leave this healing in this method for
+             //   now.
+-            if uv_curves.len() > 1 && k.fixes.uv_trim_joins_drop_pieces {
++            if uv_curves.len() > 1 && k.fixes.hit_uv_trim_joins_drop_pieces() {
+                 // Not upstream (WR-543, tangency-labs/solidcore#1383; the fork's
+                 // tangency-labs/smlib@e36feb1): keep the longest run of pieces that meet
+                 // end to end, joined, on the edge parameters it was dropped from:
+@@ -1125,8 +1125,8 @@ fn trim_other_uv_curves(
+         ..crate::kernel::KernelOptions::default()
+     });
+     tk.rng = k.rng.clone();
+-    tk.fixes.bspline_trim_preserves_uv_spans = k.fixes.bspline_trim_preserves_uv_spans;
+-    tk.fixes.bspline_trim_keeps_rational_end_spans = k.fixes.bspline_trim_keeps_rational_end_spans;
++    tk.fixes.bspline_trim_preserves_uv_spans = k.fixes.hit_bspline_trim_preserves_uv_spans();
++    tk.fixes.bspline_trim_keeps_rational_end_spans = k.fixes.hit_bspline_trim_keeps_rational_end_spans();
+     for x in crate::topology::edge::edgeuses(b, e, None, None)? {
+         if x == this {
+             continue;
+diff --git a/crates/solidcore/src/topology/face/p1.rs b/crates/solidcore/src/topology/face/p1.rs
+index fe95b1734..70cb7fa23 100644
+--- a/crates/solidcore/src/topology/face/p1.rs
++++ b/crates/solidcore/src/topology/face/p1.rs
+@@ -748,7 +748,7 @@ pub fn create_oriented_trim_boundary(
+     };
+ 
+     // WR-491, opt-in: the periods of the directions in which the surface is closed
+-    let periods = if k.fixes.trim_boundary_seam_wrap && parameter_space && fill_singularities {
++    let periods = if k.fixes.hit_trim_boundary_seam_wrap() && parameter_space && fill_singularities {
+         seam_periods(k, b, f)?
+     } else {
+         [None, None]
+diff --git a/crates/solidcore/src/topology/face/p2.rs b/crates/solidcore/src/topology/face/p2.rs
+index 83aef577d..b8b076ebe 100644
+--- a/crates/solidcore/src/topology/face/p2.rs
++++ b/crates/solidcore/src/topology/face/p2.rs
+@@ -2130,7 +2130,7 @@ impl OdeArea<'_> {
+             let num_components = self.y_scale.len();
+             let mut dy = Vec::new();
+             dy.resize(num_components, 0.0);
+-            if k.fixes.precise_properties_split_at_surface_knots {
++            if k.fixes.hit_precise_properties_split_at_surface_knots() {
+                 // Along the iso-u line the integrand is smooth only within each knot
+                 // span of the surface: integrated span by span, as the trim curve is
+                 // (WR-494; the SolidCraft fork's tangency-labs/smlib@08d9a14).
+@@ -2959,7 +2959,7 @@ pub fn fix_uv_trim_curves_notified(
+ 
+     // drop sUVVertex to each UVTrimCurve, trim there and stretch back (upstream). The
+     // opt-in WR-255 fix (#959/#570) skips this and only moves the end points below.
+-    if !k.fixes.uv_trim_corner_end_points_only {
++    if !k.fixes.hit_uv_trim_corner_end_points_only() {
+         let curr_drop = ignored(held_curve(b, curr_holder)?.drop_point(
+             k,
+             &curr_ivl,
+diff --git a/crates/solidcore/src/topology/face/p3.rs b/crates/solidcore/src/topology/face/p3.rs
+index 952f2496c..c7551b18d 100644
+--- a/crates/solidcore/src/topology/face/p3.rs
++++ b/crates/solidcore/src/topology/face/p3.rs
+@@ -1041,7 +1041,7 @@ fn loop_orientation_3d(
+         // relative to the loop's own bounding box (dimensionless too), so a small hole in
+         // a large face is oriented as a large one is; a box with no width or no height
+         // bounds no area.
+-        let floor = if k.fixes.loop_orientation_floor_from_loop_box {
++        let floor = if k.fixes.hit_loop_orientation_floor_from_loop_box() {
+             let box_u = sampler.bounds.x_length() / sampler.width;
+             let box_v = sampler.bounds.y_length() / sampler.height;
+             let bounds_area = box_u > EFF_ZERO && box_v > EFF_ZERO;
+diff --git a/crates/solidcore/src/topology/loopuse.rs b/crates/solidcore/src/topology/loopuse.rs
+index 9c743484c..806b01a3c 100644
+--- a/crates/solidcore/src/topology/loopuse.rs
++++ b/crates/solidcore/src/topology/loopuse.rs
+@@ -1297,7 +1297,7 @@ fn get_or_create_uv_trim_curve(
+ fn drop_point(k: &Kernel, s: &Surface, dom: &Extent2d, p: Point3) -> Result<Option<Point2>> {
+     let opts = crate::surface::surface::p5::DropPointOptions::default();
+     let r = s.drop_point::<crate::surface::surface::p4::NoObject>(k, p, dom, &opts);
+-    if k.fixes.topology_failed_evaluations_propagate {
++    if k.fixes.hit_topology_failed_evaluations_propagate() {
+         let r = r?;
+         return if r.success {
+             Ok(Some(r.result_uv))
+@@ -1323,7 +1323,7 @@ fn ignored<T>(r: Result<T>) -> Result<Option<T>> {
+ /// [`ignored`], or with the opt-in
+ /// [`crate::kernel::UpstreamFixes::topology_failed_evaluations_propagate`] every error.
+ fn evaluated<T>(k: &Kernel, r: Result<T>) -> Result<Option<T>> {
+-    if k.fixes.topology_failed_evaluations_propagate {
++    if k.fixes.hit_topology_failed_evaluations_propagate() {
+         r.map(Some)
+     } else {
+         ignored(r)
+diff --git a/crates/solidcore/src/topology/proto_topology/p1/proto.rs b/crates/solidcore/src/topology/proto_topology/p1/proto.rs
+index d3f38a54d..77e81b30e 100644
+--- a/crates/solidcore/src/topology/proto_topology/p1/proto.rs
++++ b/crates/solidcore/src/topology/proto_topology/p1/proto.rs
+@@ -3526,7 +3526,7 @@ impl<O: ClassObject> ProtoTopologyManager<O> {
+         // upstream returns SM_SUCCESS here, which reads as TRUE (the proto vertex is
+         // not removed): plan/upstream-issues.md WR-73; FALSE with the opt-in
+         // `Kernel::fixes.proto_vertex_miss_is_false` (tangency-labs/solidcore#848)
+-        let missed = !k.fixes.proto_vertex_miss_is_false;
++        let missed = !k.fixes.hit_proto_vertex_miss_is_false();
+         let Some(sols) = sols else {
+             return Ok(missed);
+         };
+diff --git a/crates/solidcore/src/topology/proto_topology/p2.rs b/crates/solidcore/src/topology/proto_topology/p2.rs
+index 28ff7b34d..21dade021 100644
+--- a/crates/solidcore/src/topology/proto_topology/p2.rs
++++ b/crates/solidcore/src/topology/proto_topology/p2.rs
+@@ -873,8 +873,8 @@ impl<O: ClassObject> ProtoTopologyManager<O> {
+         let brep2 = self.which_brep(2);
+ 
+         // not upstream (WR-452, WR-453, #435, #410; opt-in): fit the ends to the proto vertices
+-        if k.fixes.imprint_trims_edge_to_proto_vertex
+-            || k.fixes.imprint_extends_edge_to_proto_vertex
++        if k.fixes.hit_imprint_trims_edge_to_proto_vertex()
++            || k.fixes.hit_imprint_extends_edge_to_proto_vertex()
+         {
+             self.fit_edge_def_ends_to_proto_vertices(
+                 k,
+@@ -945,7 +945,7 @@ impl<O: ClassObject> ProtoTopologyManager<O> {
+         // two coincident edges, and the merge put a copy of the boundary edge beside this
+         // one in Brep1 (`SmFace` tests 33 and 34).
+         let mut along_edge2 = None;
+-        if k.fixes.imprint_reuses_coincident_face_edge
++        if k.fixes.hit_imprint_reuses_coincident_face_edge()
+             && type2 == PointClassType::Face
+             && start_vtx2 != end_vtx2
+         {
+@@ -1518,7 +1518,7 @@ impl<O: ClassObject> ProtoTopologyManager<O> {
+             // each B-rep, so a curve shorter than the proto vertex's containment ball is
+             // wide is that vertex, not a closed edge on it. Ends on two vertex definitions
+             // keep upstream's test against our own tolerance.
+-            let absorb = k.fixes.degenerate_proto_edge_in_one_vertex;
++            let absorb = k.fixes.hit_degenerate_proto_edge_in_one_vertex();
+             let degenerate_len = if absorb {
+                 let ends = int_curve.ends(k)?;
+                 let start = self.pv_live(start)?;
+@@ -1561,7 +1561,7 @@ impl<O: ClassObject> ProtoTopologyManager<O> {
+                 // a curve joining two of the proto vertex's definitions is split at each
+                 // other definition of it that lies on the curve.
+                 let mut joins_two = None;
+-                if k.fixes.proto_edge_splits_at_captured_vertices {
++                if k.fixes.hit_proto_edge_splits_at_captured_vertices() {
+                     let start = self.pv_live(start)?;
+                     let vd0 = self.closest_vertex_definition(start, pt0)?;
+                     let vd1 = self.closest_vertex_definition(start, pt1)?;
+@@ -2236,7 +2236,7 @@ impl<O: ClassObject> ProtoTopologyManager<O> {
+             // under its midpoint, its ends were not that piece's vertices, and Imprint
+             // found no vertex for them. The upper part, a new EdgeDefinition still on the
+             // old edge, is classified in its turn.
+-            if k.fixes.boolean_splits_definition_across_split {
++            if k.fixes.hit_boolean_splits_definition_across_split() {
+                 let split_vtx = self.vd_ref(calling_vd)?.final_vertex(which);
+                 let tol_3d = xsect_tol_of(k, brep, Some(old_edge), split_vtx)?;
+                 let ed_ivl = d.xsect_interval();
+diff --git a/crates/solidcore/src/topology/proto_topology/p2/imprint_ends.rs b/crates/solidcore/src/topology/proto_topology/p2/imprint_ends.rs
+index fc70c90e2..7d1206137 100644
+--- a/crates/solidcore/src/topology/proto_topology/p2/imprint_ends.rs
++++ b/crates/solidcore/src/topology/proto_topology/p2/imprint_ends.rs
+@@ -114,12 +114,12 @@ impl<O: ClassObject> ProtoTopologyManager<O> {
+             if !(gap > EFF_ZERO * (1.0 + end_pt.max_dimension())) {
+                 continue;
+             }
+-            if k.fixes.imprint_extends_edge_to_proto_vertex
++            if k.fixes.hit_imprint_extends_edge_to_proto_vertex()
+                 && self.extend_end_to_proto_vertex(k, brep, ed, at_end, pv_pos, end_pt, gap)?
+             {
+                 continue;
+             }
+-            if k.fixes.imprint_trims_edge_to_proto_vertex {
++            if k.fixes.hit_imprint_trims_edge_to_proto_vertex() {
+                 self.trim_end_to_proto_vertex(k, brep, ed, at_end, pv_pos, gap)?;
+             }
+         }
+diff --git a/crates/solidcore/src/topology/proto_topology/p3.rs b/crates/solidcore/src/topology/proto_topology/p3.rs
+index f5eb6cf36..beccde494 100644
+--- a/crates/solidcore/src/topology/proto_topology/p3.rs
++++ b/crates/solidcore/src/topology/proto_topology/p3.rs
+@@ -386,7 +386,7 @@ impl<O: ClassObject> ProtoTopologyManager<O> {
+             ))?
+             .and_then(|r| r.0);
+             // not upstream (WR-410, #1059, opt-in): placed by its best edge crossing
+-            if let (Some(pv), true) = (start_pv, k.fixes.boolean_vertex_by_best_crossing) {
++            if let (Some(pv), true) = (start_pv, k.fixes.hit_boolean_vertex_by_best_crossing()) {
+                 let sine = crossing_sine(
+                     k,
+                     &*geometry,
+@@ -408,7 +408,7 @@ impl<O: ClassObject> ProtoTopologyManager<O> {
+             ))?
+             .and_then(|r| r.0);
+             // not upstream (WR-410, #1059, opt-in): placed by its best edge crossing
+-            if let (Some(pv), true) = (end_pv, k.fixes.boolean_vertex_by_best_crossing) {
++            if let (Some(pv), true) = (end_pv, k.fixes.hit_boolean_vertex_by_best_crossing()) {
+                 let sine = crossing_sine(
+                     k,
+                     &*geometry,
+diff --git a/crates/solidcore/src/topology/shell.rs b/crates/solidcore/src/topology/shell.rs
+index 79fb17c87..4abbf8d3b 100644
+--- a/crates/solidcore/src/topology/shell.rs
++++ b/crates/solidcore/src/topology/shell.rs
+@@ -1510,7 +1510,7 @@ fn checked<T>(k: &Kernel, r: Result<T>) -> Result<Checked<T>> {
+     match r {
+         Ok(v) => Ok(Checked::Value(v)),
+         Err(e) if e.is_unported() => Err(e),
+-        Err(_) if k.fixes.shell_inner_shell_of_statuses => Ok(Checked::Decides),
++        Err(_) if k.fixes.hit_shell_inner_shell_of_statuses() => Ok(Checked::Decides),
+         Err(_) => Ok(Checked::Ignored),
+     }
+ }
+diff --git a/crates/solidcore/src/topology/trimming_tools.rs b/crates/solidcore/src/topology/trimming_tools.rs
+index 8322ea3e4..136521c54 100644
+--- a/crates/solidcore/src/topology/trimming_tools.rs
++++ b/crates/solidcore/src/topology/trimming_tools.rs
+@@ -1763,7 +1763,7 @@ pub fn order_curves_into_loops(k: &Kernel, curves: &[Curve], tol_3d: f64) -> Res
+             // Not upstream (WR-591, opt-in): where more curve ends meet at this vertex
+             // (loops touching there), the loop goes on along the curve next round the
+             // vertex from the one it arrives by, so it never crosses itself
+-            let found_index = if k.fixes.loops_go_on_round_the_vertex {
++            let found_index = if k.fixes.hit_loops_go_on_round_the_vertex() {
+                 next_round_the_vertex(
+                     k,
+                     curves,
+@@ -2402,7 +2402,7 @@ fn loop_junction_tolerance(
+         edge_zone_tol(k, b, eu1::edge(b, current)?)?,
+         edge_zone_tol(k, b, eu1::edge(b, previous)?)?,
+     );
+-    if !k.fixes.check_loop_vertex_tolerance {
++    if !k.fixes.hit_check_loop_vertex_tolerance() {
+         return Ok(edge_limit);
+     }
+     let Some(start_use) = eu1::vertexuse(b, current)? else {
+@@ -2505,7 +2505,7 @@ pub fn check_loop(
+             let mut gap_start = current_start;
+             let mut gap_end = previous_end;
+             // WR-440 (#530), opt-in: upstream compares the raw representatives.
+-            if k.fixes.check_loop_projected_seam_ends
++            if k.fixes.hit_check_loop_projected_seam_ends()
+                 && (current_uv.start_weight.is_none() || previous_uv.end_weight.is_none())
+             {
+                 for (start, end, period, direction) in [
+@@ -3143,7 +3143,7 @@ mod tests {
+     fn issue_476_default_keeps_the_edge_only_gap_limit() {
+         // Default (SMLib): a gap the widened shared vertex would cover is closure 3.
+         let k = Kernel::default();
+-        assert!(!k.fixes.check_loop_vertex_tolerance);
++        assert!(!k.fixes.hit_check_loop_vertex_tolerance());
+         let surface = Surface::from(crate::surface::plane::Plane::from_normal(
+             Vec3::ZERO,
+             Vec3::Z,
