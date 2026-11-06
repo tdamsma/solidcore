@@ -12,7 +12,9 @@
   "images": {
     "operand.png": "1f69df54a719695fdb7bf35089dbf36dc1aa3ea90710444e5a2ed87593815d0b",
     "fixed-round.png": "48a2ffbbaa362105855498e4ee38235a3abc0447c0042f3657aa64296f33b874",
-    "fixed-chamfer.png": "21563c2d438150592732f02f9ab855db133a3c717459e1a5fd6bb6eb9867bcef"
+    "fixed-chamfer.png": "21563c2d438150592732f02f9ab855db133a3c717459e1a5fd6bb6eb9867bcef",
+    "edited-operand.png": "6645a5d4639e9102bd4c72842b49beff5a36e338ecdd3bcb24e61570bdac5d5e"
   },
-  "note": "Before is the actual valid operand: main refuses the final operation and produces no output. After images show formerly refused seed0 round and chamfer. All rendered faces succeed."
+  "note": "Before is the actual valid operand: main refuses the final operation and produces no output. After images show formerly refused seed0 round and chamfer. All rendered faces succeed.",
+  "edited_operand": "70x50 outerR6 shelled2 after height30->33, before final rim operation; exact application Kernel API capture, geometry-edit control only"
 }
