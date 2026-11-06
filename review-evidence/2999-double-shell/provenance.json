@@ -1,0 +1,31 @@
+{
+  "base": "b7002862b6c4aa40d1c23d6209e136e32b27e42b",
+  "case": "shell/cov-shell-again-open-at-an-inner-wall-of-a-shelled-box",
+  "record": "b12",
+  "record_face": 14,
+  "native_face": 14,
+  "view": [
+    155,
+    -40
+  ],
+  "renderer": "solidcore diagnostics and tess; profile goldens; no production changes",
+  "input_faces": 19,
+  "input_edges": 48,
+  "input_vertices": 32,
+  "input_volume_mm3": 19449.486556869946,
+  "native_result": "Upstream offset::offset_executive::p2::shell_brep code1001; precise rejection stage not yet established",
+  "regression": "compiles and explicitly fails; ignored while diagnosis remains draft",
+  "vectorcraft_version": "0.21.1",
+  "font": "Helvetica requested; VectorCraft reports Source Sans 3 fallback",
+  "section_scope": "Local flat kept-wall cross-section, not a rendered successful second-shell body",
+  "literature": "https://web.mit.edu/hyperbook/Patrikalakis-Maekawa-Cho/node224.html",
+  "hashes": {
+    "second-shell-input.smb": "ab33dbe344d57b27fbc54dddc5543ad5bb017028cd36378ea9619ee5d4711f4f",
+    "double-shell-section.png": "1f0d2659dd36190f126125dfdd8c5777e184feff2f02cd47c303694c07782016",
+    "selected-inner-wall.json": "d4ae1f3f17b0176527cb401b41ba58c7f36f2cb9cda569ecf240cad62b480129",
+    "vectorcraft-commands.json": "d3e0acc64eb702fa8ee0a9515bb6452976d6859543bb7d4b169c13e728e341a0",
+    "double-shell-section.svg": "72f6ed64cafa30177c917032def11b5ac6b5c06b6f92ebc6280a4d0ff2d82266",
+    "double-shell-section.vectorcraft": "989797879078e2e968882d505e731fa2a13c0a77a3c99e665f5e81f70a7b8020",
+    "selected-inner-wall.png": "b94d3e0700b0714288a83a5ca7367bbd56a3589c141e01349e49f3e231b37bcd"
+  }
+}

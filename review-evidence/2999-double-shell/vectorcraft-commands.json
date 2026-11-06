@@ -1,0 +1,248 @@
+{
+  "steps": [
+    {
+      "id": "file.new",
+      "params": {
+        "name": "Second shell of a rounded box",
+        "width": 1000,
+        "height": 540,
+        "units": "Points",
+        "backgroundContents": "white"
+      }
+    },
+    {
+      "id": "draw_shape",
+      "params": {
+        "shape": "rectangle",
+        "x": 0,
+        "y": 0,
+        "width": 1000,
+        "height": 540,
+        "fill": "#ffffff",
+        "stroke": "none"
+      }
+    },
+    {
+      "id": "text.create",
+      "params": {
+        "x": 50,
+        "y": 42,
+        "text": "Second shell: hollow the existing 2 mm walls",
+        "size": 22,
+        "font": "Helvetica",
+        "style": "Bold",
+        "color": "#000000",
+        "justify": "left"
+      }
+    },
+    {
+      "id": "text.create",
+      "params": {
+        "x": 50,
+        "y": 80,
+        "text": "Local cross-section through a kept flat wall, away from corners and the opening.",
+        "size": 14,
+        "font": "Helvetica",
+        "style": "Regular",
+        "color": "#000000",
+        "justify": "left"
+      }
+    },
+    {
+      "id": "text.create",
+      "params": {
+        "x": 50,
+        "y": 138,
+        "text": "Before",
+        "size": 18,
+        "font": "Helvetica",
+        "style": "Bold",
+        "color": "#000000",
+        "justify": "left"
+      }
+    },
+    {
+      "id": "draw_shape",
+      "params": {
+        "shape": "rectangle",
+        "x": 330,
+        "y": 110,
+        "width": 400,
+        "height": 110,
+        "fill": "#dce9f5",
+        "stroke": "#555555",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "text.create",
+      "params": {
+        "x": 530,
+        "y": 170,
+        "text": "2 mm material",
+        "size": 18,
+        "font": "Helvetica",
+        "style": "Bold",
+        "color": "#000000",
+        "justify": "center"
+      }
+    },
+    {
+      "id": "text.create",
+      "params": {
+        "x": 50,
+        "y": 306,
+        "text": "Expected after",
+        "size": 18,
+        "font": "Helvetica",
+        "style": "Bold",
+        "color": "#000000",
+        "justify": "left"
+      }
+    },
+    {
+      "id": "draw_shape",
+      "params": {
+        "shape": "rectangle",
+        "x": 330,
+        "y": 270,
+        "width": 100,
+        "height": 110,
+        "fill": "#dce9f5",
+        "stroke": "#555555",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "draw_shape",
+      "params": {
+        "shape": "rectangle",
+        "x": 430,
+        "y": 270,
+        "width": 200,
+        "height": 110,
+        "fill": "#ffffff",
+        "stroke": "#555555",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "draw_shape",
+      "params": {
+        "shape": "rectangle",
+        "x": 630,
+        "y": 270,
+        "width": 100,
+        "height": 110,
+        "fill": "#dce9f5",
+        "stroke": "#555555",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "text.create",
+      "params": {
+        "x": 380,
+        "y": 330,
+        "text": "0.5 mm",
+        "size": 16,
+        "font": "Helvetica",
+        "style": "Bold",
+        "color": "#000000",
+        "justify": "center"
+      }
+    },
+    {
+      "id": "text.create",
+      "params": {
+        "x": 530,
+        "y": 317,
+        "text": "1 mm",
+        "size": 18,
+        "font": "Helvetica",
+        "style": "Bold",
+        "color": "#000000",
+        "justify": "center"
+      }
+    },
+    {
+      "id": "text.create",
+      "params": {
+        "x": 530,
+        "y": 345,
+        "text": "cavity",
+        "size": 16,
+        "font": "Helvetica",
+        "style": "Regular",
+        "color": "#000000",
+        "justify": "center"
+      }
+    },
+    {
+      "id": "text.create",
+      "params": {
+        "x": 680,
+        "y": 330,
+        "text": "0.5 mm",
+        "size": 16,
+        "font": "Helvetica",
+        "style": "Bold",
+        "color": "#000000",
+        "justify": "center"
+      }
+    },
+    {
+      "id": "text.create",
+      "params": {
+        "x": 50,
+        "y": 439,
+        "text": "The selected inner face opens the new cavity; the other faces move 0.5 mm into material.",
+        "size": 16,
+        "font": "Helvetica",
+        "style": "Regular",
+        "color": "#000000",
+        "justify": "left"
+      }
+    },
+    {
+      "id": "text.create",
+      "params": {
+        "x": 50,
+        "y": 482,
+        "text": "Whole part: one solid, original bounds, analytic material volume 9017.6 to 9038.3 mm3.",
+        "size": 16,
+        "font": "Helvetica",
+        "style": "Bold",
+        "color": "#1f6fb2",
+        "justify": "left"
+      }
+    },
+    {
+      "id": "document.save",
+      "params": {
+        "path": "/tmp/solidcore-vectorcraft-tool/shell-2954/double-shell-section.vectorcraft",
+        "format": "vectorcraft",
+        "compress": false
+      }
+    },
+    {
+      "id": "document.export",
+      "params": {
+        "path": "/tmp/solidcore-vectorcraft-tool/shell-2954/double-shell-section.svg",
+        "format": "svg",
+        "outlineText": false
+      }
+    },
+    {
+      "id": "document.export",
+      "params": {
+        "path": "/tmp/solidcore-vectorcraft-tool/shell-2954/double-shell-section.png",
+        "format": "png",
+        "scale": 1,
+        "background": "white"
+      }
+    }
+  ],
+  "atomic": true,
+  "label": "Explain offset double-shell-section alias"
+}
