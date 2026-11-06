@@ -1,0 +1,30 @@
+{
+  "source_worktree": "/tmp/solidcore-review-2890/crates/diagnostics/src",
+  "source_head": "2e4642911a0d122bb2ff9faa370646c25af41768",
+  "only_change": "body::read enables existing UpstreamFixes::all to read procedural blend records; no geometry/render changes",
+  "libraries": {
+    "solidcore": "/tmp/solidcore-review-2890/bin/difftest/deps/libsolidcore-4e2edfc31e6e732c.rlib",
+    "solidcore_convert": "/tmp/solidcore-review-2890/bin/difftest/deps/libsolidcore_convert-fb087f2a316ae575.rlib",
+    "solidcore_tess": "/tmp/solidcore-review-2890/bin/difftest/deps/libsolidcore_tess-d17c552f2ceb408e.rlib",
+    "miniz_oxide": "/tmp/solidcore-review-2890/bin/difftest/deps/libminiz_oxide-870e30de03922dcb.rlib",
+    "serde_json": "/tmp/solidcore-review-2890/bin/difftest/deps/libserde_json-b69ae8d956306892.rlib"
+  },
+  "view": {
+    "azimuth": 45,
+    "elevation": -15,
+    "width": 1400,
+    "height": 1200
+  },
+  "body_sha256": {
+    "main-operand": "1d0021fc94c41d1c39361c4b44a578c97875f03965c9b84dba7eb944732caf65",
+    "corrected-vase": "8cbdac0bb4a249153e89f9318fe2f3ab68532d76a9d4acd7d6e40c02a5afa6a1"
+  },
+  "corrected_counts": [
+    6,
+    9,
+    5
+  ],
+  "corrected_volume": 112773.94647118454,
+  "analytic_volume": 112773.94647120051,
+  "native_log": "PICK (EdgeId(4), 7.075709588746652e-15)\nCHAIN [EdgeId(4)]\nPREPARE Ok([[6.483916671439901, 6.483916671439901]])\nCORNERS Ok(()) ids=Ok([FilletCornerId(0)])\nFILLET Ok(()) code=0 comment=<no comment>\n fit=None\nRESULT counts=6/9/5 V=Ok(112773.94647118454) check=Ok(BrepCheck { pointers_status: 1000, pointer_reports: AssertArray { reports: [], identities: {}, last_add: false }, assert_valid: Some(true), reports: AssertArray { reports: [], identities: {}, last_add: false } })\n"
+}
