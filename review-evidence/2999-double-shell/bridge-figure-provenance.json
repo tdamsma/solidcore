@@ -1,0 +1,13 @@
+{
+  "source": "edge-inspection.log: intermediate faces5,11,19..22 and nonmanifold edges29,31,47,50,51,54",
+  "geometry": "schematic enlarged end details from measured coordinate ranges, not a successful body",
+  "tool": "VectorCraft0.21.1; same verified release as original figure",
+  "font": "Helvetica requested; SourceSans3 fallback reported",
+  "viewed": true,
+  "hashes": {
+    "bridge-vectorcraft-commands.json": "f233352d407fef57562e889d2417acdfb8b08fa293f63b1102d96bd8ec368f4f",
+    "bridge-end-mismatch.svg": "63e7d60c09c0c70142e2aa80d1d0865ad3f6e1da95836baa94578e48c0c3a212",
+    "bridge-end-mismatch.png": "21a84c39d33def39ce6e671ea4cd37e8fcc956c048f05f5b1671305c7ce15c2e",
+    "bridge-end-mismatch.vectorcraft": "85d8fd855388489622c776e9e6ec1ed7459e7380b6c3a113cd028a8c725fdc8a"
+  }
+}

@@ -1,0 +1,321 @@
+{
+  "steps": [
+    {
+      "id": "file.new",
+      "params": {
+        "name": "Measured shell bridge end mismatch",
+        "width": 1000,
+        "height": 560,
+        "units": "Points",
+        "backgroundContents": "white"
+      }
+    },
+    {
+      "id": "draw_shape",
+      "params": {
+        "shape": "rectangle",
+        "x": 0,
+        "y": 0,
+        "width": 1000,
+        "height": 560,
+        "fill": "#ffffff",
+        "stroke": "none"
+      }
+    },
+    {
+      "id": "text.create",
+      "params": {
+        "x": 45,
+        "y": 42,
+        "text": "The open-wall bridges retain the old end heights",
+        "size": 22,
+        "font": "Helvetica",
+        "style": "Bold",
+        "color": "#000000",
+        "justify": "left"
+      }
+    },
+    {
+      "id": "text.create",
+      "params": {
+        "x": 45,
+        "y": 78,
+        "text": "Measured on the saved intermediate offset. End details enlarged; middle of each bridge omitted.",
+        "size": 14,
+        "font": "Helvetica",
+        "style": "Regular",
+        "color": "#000000",
+        "justify": "left"
+      }
+    },
+    {
+      "id": "text.create",
+      "params": {
+        "x": 80,
+        "y": 130,
+        "text": "Lower end",
+        "size": 18,
+        "font": "Helvetica",
+        "style": "Bold",
+        "color": "#000000",
+        "justify": "left"
+      }
+    },
+    {
+      "id": "draw_shape",
+      "params": {
+        "shape": "rectangle",
+        "x": 240,
+        "y": 160,
+        "width": 110,
+        "height": 100,
+        "fill": "#dce9f5",
+        "stroke": "#555555",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "draw_shape",
+      "params": {
+        "shape": "line",
+        "x1": 100,
+        "y1": 360,
+        "x2": 450,
+        "y2": 360,
+        "stroke": "#1f6fb2",
+        "strokeWidth": 3
+      }
+    },
+    {
+      "id": "text.create",
+      "params": {
+        "x": 80,
+        "y": 399,
+        "text": "Moved floor: z = 1.5",
+        "size": 16,
+        "font": "Helvetica",
+        "style": "Bold",
+        "color": "#000000",
+        "justify": "left"
+      }
+    },
+    {
+      "id": "text.create",
+      "params": {
+        "x": 80,
+        "y": 290,
+        "text": "Bridge starts at z = 2",
+        "size": 16,
+        "font": "Helvetica",
+        "style": "Regular",
+        "color": "#000000",
+        "justify": "left"
+      }
+    },
+    {
+      "id": "draw_shape",
+      "params": {
+        "shape": "line",
+        "x1": 380,
+        "y1": 265,
+        "x2": 380,
+        "y2": 355,
+        "stroke": "#1f6fb2",
+        "strokeWidth": 3
+      }
+    },
+    {
+      "id": "draw_shape",
+      "params": {
+        "shape": "line",
+        "x1": 370,
+        "y1": 265,
+        "x2": 390,
+        "y2": 265,
+        "stroke": "#1f6fb2",
+        "strokeWidth": 3
+      }
+    },
+    {
+      "id": "draw_shape",
+      "params": {
+        "shape": "line",
+        "x1": 370,
+        "y1": 355,
+        "x2": 390,
+        "y2": 355,
+        "stroke": "#1f6fb2",
+        "strokeWidth": 3
+      }
+    },
+    {
+      "id": "text.create",
+      "params": {
+        "x": 396,
+        "y": 320,
+        "text": "0.5 mm gap",
+        "size": 16,
+        "font": "Helvetica",
+        "style": "Bold",
+        "color": "#1f6fb2",
+        "justify": "left"
+      }
+    },
+    {
+      "id": "text.create",
+      "params": {
+        "x": 600,
+        "y": 130,
+        "text": "Upper end",
+        "size": 18,
+        "font": "Helvetica",
+        "style": "Bold",
+        "color": "#000000",
+        "justify": "left"
+      }
+    },
+    {
+      "id": "draw_shape",
+      "params": {
+        "shape": "rectangle",
+        "x": 735,
+        "y": 230,
+        "width": 110,
+        "height": 150,
+        "fill": "#dce9f5",
+        "stroke": "#555555",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "draw_shape",
+      "params": {
+        "shape": "rectangle",
+        "x": 735,
+        "y": 160,
+        "width": 110,
+        "height": 70,
+        "fill": "#1f6fb2",
+        "stroke": "#555555",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "draw_shape",
+      "params": {
+        "shape": "line",
+        "x1": 580,
+        "y1": 230,
+        "x2": 940,
+        "y2": 230,
+        "stroke": "#1f6fb2",
+        "strokeWidth": 3
+      }
+    },
+    {
+      "id": "text.create",
+      "params": {
+        "x": 580,
+        "y": 424,
+        "text": "Moved rim: z = 29.5",
+        "size": 16,
+        "font": "Helvetica",
+        "style": "Bold",
+        "color": "#000000",
+        "justify": "left"
+      }
+    },
+    {
+      "id": "text.create",
+      "params": {
+        "x": 580,
+        "y": 462,
+        "text": "Three faces meet at this edge",
+        "size": 14,
+        "font": "Helvetica",
+        "style": "Regular",
+        "color": "#000000",
+        "justify": "left"
+      }
+    },
+    {
+      "id": "text.create",
+      "params": {
+        "x": 600,
+        "y": 152,
+        "text": "Bridge reaches z = 30",
+        "size": 16,
+        "font": "Helvetica",
+        "style": "Regular",
+        "color": "#000000",
+        "justify": "left"
+      }
+    },
+    {
+      "id": "text.create",
+      "params": {
+        "x": 858,
+        "y": 196,
+        "text": "0.5 mm",
+        "size": 14,
+        "font": "Helvetica",
+        "style": "Bold",
+        "color": "#1f6fb2",
+        "justify": "left"
+      }
+    },
+    {
+      "id": "text.create",
+      "params": {
+        "x": 858,
+        "y": 215,
+        "text": "flap",
+        "size": 14,
+        "font": "Helvetica",
+        "style": "Bold",
+        "color": "#1f6fb2",
+        "justify": "left"
+      }
+    },
+    {
+      "id": "text.create",
+      "params": {
+        "x": 45,
+        "y": 521,
+        "text": "Both affected ends lie beside x = +/-29, y = -23 to -23.5. The offset is not a closed solid.",
+        "size": 16,
+        "font": "Helvetica",
+        "style": "Bold",
+        "color": "#000000",
+        "justify": "left"
+      }
+    },
+    {
+      "id": "document.save",
+      "params": {
+        "path": "/tmp/solidcore-vectorcraft-tool/bridge-2954/bridge-end-mismatch.vectorcraft",
+        "format": "vectorcraft",
+        "compress": false
+      }
+    },
+    {
+      "id": "document.export",
+      "params": {
+        "path": "/tmp/solidcore-vectorcraft-tool/bridge-2954/bridge-end-mismatch.svg",
+        "format": "svg",
+        "outlineText": false
+      }
+    },
+    {
+      "id": "document.export",
+      "params": {
+        "path": "/tmp/solidcore-vectorcraft-tool/bridge-2954/bridge-end-mismatch.png",
+        "format": "png",
+        "scale": 1,
+        "background": "white"
+      }
+    }
+  ],
+  "atomic": true,
+  "label": "Explain offset bridge-end-mismatch alias"
+}

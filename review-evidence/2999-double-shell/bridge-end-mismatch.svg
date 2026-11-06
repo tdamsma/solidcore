@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1000" height="560" viewBox="0 0 1000 560">
+  <title>Measured shell bridge end mismatch</title>
+  <g id="Layer_1" data-name="Layer 1">
+    <rect x="0" y="0" width="1000" height="560" fill="#ffffff"/>
+    <text transform="matrix(1 0 0 1 45 42)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="22" font-weight="bold" fill="#000000"><tspan x="0" y="0">The open-wall bridges retain the old end heights</tspan></text>
+    <text transform="matrix(1 0 0 1 45 78)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="14" fill="#000000"><tspan x="0" y="0">Measured on the saved intermediate offset. End details enlarged; middle of each bridge omitted.</tspan></text>
+    <text transform="matrix(1 0 0 1 80 130)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="18" font-weight="bold" fill="#000000"><tspan x="0" y="0">Lower end</tspan></text>
+    <rect x="240" y="160" width="110" height="100" fill="#dce9f5" stroke="#555555" stroke-miterlimit="10"/>
+    <line x1="100" y1="360" x2="450" y2="360" fill="none" stroke="#1f6fb2" stroke-width="3" stroke-miterlimit="10"/>
+    <text transform="matrix(1 0 0 1 80 399)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="16" font-weight="bold" fill="#000000"><tspan x="0" y="0">Moved floor: z = 1.5</tspan></text>
+    <text transform="matrix(1 0 0 1 80 290)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="16" fill="#000000"><tspan x="0" y="0">Bridge starts at z = 2</tspan></text>
+    <line x1="380" y1="265" x2="380" y2="355" fill="none" stroke="#1f6fb2" stroke-width="3" stroke-miterlimit="10"/>
+    <line x1="370" y1="265" x2="390" y2="265" fill="none" stroke="#1f6fb2" stroke-width="3" stroke-miterlimit="10"/>
+    <line x1="370" y1="355" x2="390" y2="355" fill="none" stroke="#1f6fb2" stroke-width="3" stroke-miterlimit="10"/>
+    <text transform="matrix(1 0 0 1 396 320)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="16" font-weight="bold" fill="#1f6fb2"><tspan x="0" y="0">0.5 mm gap</tspan></text>
+    <text transform="matrix(1 0 0 1 600 130)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="18" font-weight="bold" fill="#000000"><tspan x="0" y="0">Upper end</tspan></text>
+    <rect x="735" y="230" width="110" height="150" fill="#dce9f5" stroke="#555555" stroke-miterlimit="10"/>
+    <rect x="735" y="160" width="110" height="70" fill="#1f6fb2" stroke="#555555" stroke-miterlimit="10"/>
+    <line x1="580" y1="230" x2="940" y2="230" fill="none" stroke="#1f6fb2" stroke-width="3" stroke-miterlimit="10"/>
+    <text transform="matrix(1 0 0 1 580 424)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="16" font-weight="bold" fill="#000000"><tspan x="0" y="0">Moved rim: z = 29.5</tspan></text>
+    <text transform="matrix(1 0 0 1 580 462)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="14" fill="#000000"><tspan x="0" y="0">Three faces meet at this edge</tspan></text>
+    <text transform="matrix(1 0 0 1 600 152)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="16" fill="#000000"><tspan x="0" y="0">Bridge reaches z = 30</tspan></text>
+    <text transform="matrix(1 0 0 1 858 196)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="14" font-weight="bold" fill="#1f6fb2"><tspan x="0" y="0">0.5 mm</tspan></text>
+    <text transform="matrix(1 0 0 1 858 215)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="14" font-weight="bold" fill="#1f6fb2"><tspan x="0" y="0">flap</tspan></text>
+    <text transform="matrix(1 0 0 1 45 521)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="16" font-weight="bold" fill="#000000"><tspan x="0" y="0">Both affected ends lie beside x = +/-29, y = -23 to -23.5. The offset is not a closed solid.</tspan></text>
+  </g>
+</svg>
