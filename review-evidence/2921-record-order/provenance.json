@@ -1,0 +1,94 @@
+{
+  "request": {
+    "box": [
+      20,
+      20,
+      20
+    ],
+    "round_radius": 2,
+    "edge": "x=0..20,y=0,z=20 (top-front)"
+  },
+  "before": "The same valid record pick rounded x=0..20,y=0,z=0 (bottom-front).",
+  "after": "The requested top-front edge is rounded.",
+  "checks": {
+    "topology_both": {
+      "faces": 7,
+      "edges": 15,
+      "vertices": 10
+    },
+    "closed_form_volume": "8000 - 80 * (1 - pi/4)",
+    "closed_form_volume_mm3": 7982.831853071796,
+    "relative_volume_tolerance": 1e-09,
+    "rail_endpoint_absolute_tolerance": 1e-09,
+    "selection_modes": [
+      "ordinary record order",
+      "rotated edge order",
+      "alias of one kernel edge",
+      "uncached order"
+    ]
+  },
+  "captures": {
+    "before": {
+      "phase": "before",
+      "exit": 101,
+      "source_restored": true,
+      "head": "b215bc15f4f521e64a92ca699b896f30d41ab278",
+      "source_sha256": "84b58b1ba57069af802854008d877a210320ab22cd69c8282c1b667d930007cb",
+      "elapsed_seconds": 7.651784658432007,
+      "output_sha256": "a3e2edc6d9686e44faa9c4fad83503201067c562cb11be3f821412eae5a16e95"
+    },
+    "after": {
+      "phase": "after",
+      "exit": 0,
+      "source_restored": true,
+      "head": "894a88c282d5d28c6182f98830a335fedad2f45d",
+      "source_sha256": "ffa9bef21d3012cc802d2c3859a65a62d0c51da1bf9e00e603b5ecee91c3fe78",
+      "elapsed_seconds": 8.05787706375122,
+      "output_sha256": "5406c46a7e3d4eefdb0d922bfab6c23a8a8df8a2d5e8690d2055d405184ec7ca"
+    }
+  },
+  "after_code_commit": "ac06e5d0eb29298e78ddf5cc98a16e0197a29c75",
+  "render": {
+    "tool": "solidcore diagnostics, actual B-reps; no generated illustration",
+    "view": [
+      -45,
+      -20
+    ],
+    "size": [
+      1200,
+      900
+    ],
+    "reader": "Existing diagnostic helper enables UpstreamFixes::all; see /tmp/solidcore-2905-vase-probe/render-helper-all-fixes/receipt.json",
+    "reader_provenance": {
+      "source_worktree": "/tmp/solidcore-review-2890/crates/diagnostics/src",
+      "source_head": "2e4642911a0d122bb2ff9faa370646c25af41768",
+      "only_change": "body::read enables existing UpstreamFixes::all to read procedural blend records; no geometry/render changes",
+      "libraries": {
+        "solidcore": "/tmp/solidcore-review-2890/bin/difftest/deps/libsolidcore-4e2edfc31e6e732c.rlib",
+        "solidcore_convert": "/tmp/solidcore-review-2890/bin/difftest/deps/libsolidcore_convert-fb087f2a316ae575.rlib",
+        "solidcore_tess": "/tmp/solidcore-review-2890/bin/difftest/deps/libsolidcore_tess-d17c552f2ceb408e.rlib",
+        "miniz_oxide": "/tmp/solidcore-review-2890/bin/difftest/deps/libminiz_oxide-870e30de03922dcb.rlib",
+        "serde_json": "/tmp/solidcore-review-2890/bin/difftest/deps/libserde_json-b69ae8d956306892.rlib"
+      }
+    }
+  },
+  "sha256": {
+    "after.png": "054b34b3ae21fafdb91ede593d4c9ba4271deb55c10942da15347f544cb00f7b",
+    "after.smb": "5406c46a7e3d4eefdb0d922bfab6c23a8a8df8a2d5e8690d2055d405184ec7ca",
+    "before.png": "13d46160321a0402765bd3d6d1067ea4ec8867ee15145c641a2df81b60f6ce18",
+    "before.smb": "a3e2edc6d9686e44faa9c4fad83503201067c562cb11be3f821412eae5a16e95",
+    "input.smb": "40ab8e6c94472595400172b3c6a0aa9057521464e2c9c320784e2da8fb684e9c"
+  },
+  "render_reports": {
+    "before": {
+      "refused": [],
+      "size": 34.64101615137755,
+      "triangles": 568
+    },
+    "after": {
+      "refused": [],
+      "size": 34.64101615137755,
+      "triangles": 568
+    }
+  }
+}

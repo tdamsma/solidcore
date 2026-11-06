@@ -1,0 +1,1243 @@
+Version 42
+Healer Version 10
+//Brep Starts
+1e0 0e0 0e0 - Color
+1e-5 - Brep ZoneTol3d
+1 - is Manifold:[1 = is, 0 = isn't]
+0 - has Composites:[1 = does, 0 = doesn't]
+
+//Region Data
+2 Regions In Brep
+0 - Start Region
+//Index, Flags, UserId1, UserId2, Number Of Shells, First Shell, Is void Region
+0 0 0 0 1 0 1
+1 0 0 0 1 1 0
+
+//Shell Data
+2 Shells In Brep
+//Index, Flags, UserId1, UserId2, 0(Faceuse), Orientation, Number Of Faceuses, Start Faceuse
+//Index, Flags, UserId1, UserId2, 1(WireEdge), Edge
+//Index, Flags, UserId1, UserId2, 2(Vertex), Vertex
+0 0 0 0 0 1 7 0
+1 0 0 0 0 1 7 7
+
+//Composite Face Data
+0 Composite Faces In Brep
+
+//Faceuse Data
+14 Faceuses In Brep
+//Index, Flags, UserId1, UserId2, Face, Orientation
+0 0 0 0 1 1
+1 0 0 0 4 1
+2 0 0 0 3 1
+3 0 0 0 5 1
+4 0 0 0 2 1
+5 0 0 0 0 1
+6 0 0 0 6 1
+7 0 0 0 2 0
+8 0 0 0 1 0
+9 0 0 0 0 0
+10 0 0 0 3 0
+11 0 0 0 4 0
+12 0 0 0 5 0
+13 0 0 0 6 0
+
+//Face Data
+7 Faces In Brep
+//Index, Flags, UserId1, UserId2, Tol, Surface, Outer Loop, # of Loops, Naturally Trimmed
+//UMin, UMax, VMin, VMax
+0 0 0 0 1e-5 0 0 1 2
+0e0 2e1 0e0 2e1
+1 0 0 0 1e-5 1 1 1 2
+0e0 2e1 0e0 2e1
+2 0 0 0 1e-5 2 2 1 2
+0e0 2e1 0e0 2e1
+3 0 0 0 1e-5 3 3 1 2
+0e0 2e1 0e0 2e1
+4 0 0 0 1e-5 4 4 1 2
+0e0 2e1 0e0 2e1
+5 0 0 0 1e-5 5 5 1 2
+0e0 2e1 0e0 2e1
+6 0 0 0 4e-5 6 6 1 2
+0e0 1e0 2.5e-1 7.5e-1
+
+//Loop Data
+7 Loops In Brep
+//Index, Flags, UserId1, UserId2, 0(Edgeuse), # Of Edgeuses, Start Edgeuse
+//Index, Flags, UserId1, UserId2, 1(Vertex), Vertex
+0 0 0 0 0 4 0
+1 0 0 0 0 4 4
+2 0 0 0 0 4 8
+3 0 0 0 0 4 12
+4 0 0 0 0 5 16
+5 0 0 0 0 5 21
+6 0 0 0 0 4 26
+
+//Composite Edge Data
+0 Composite Edges In Brep
+
+//Edgeuse Data
+30 Edgeuses In Brep
+//Index, Flags, UserId1, UserId2, MateFlags, MateUserId1, MateUserId2, 0(Edge), Edge, Loop, Orientation, UV Curve, Next EU, Mate Next EU
+//Index, Flags, UserId1, UserId2, MateFlags, MateUserId1, MateUserId2, 1(Vertex), Vertex, Loop, Orientation, UV Curve
+//Index, Flags, UserId1, UserId2, MateFlags, MateUserId1, MateUserId2, 2(Wire Edge), Edge, Shell, Orientation, UV Curve
+//Index, Flags, UserId1, UserId2, MateFlags, MateUserId1, MateUserId2, 3(Vertex At Pole), Vertex, Loop, Orientation, UV Curve
+0 0 0 0 0 0 0 0 1 0 1 0 -1 -20
+1 0 0 0 0 0 0 0 8 0 1 1 -2 -12
+2 0 0 0 0 0 0 0 3 0 0 2 23 2
+3 0 0 0 0 0 0 0 5 0 0 3 14 3
+4 0 0 0 0 0 0 0 12 1 1 4 -5 -27
+5 0 0 0 0 0 0 0 11 1 1 5 -6 -26
+6 0 0 0 0 0 0 0 0 1 0 6 -7 -10
+7 0 0 0 0 0 0 0 2 1 0 7 -8 -18
+8 0 0 0 0 0 0 0 7 2 1 8 18 8
+9 0 0 0 0 0 0 0 0 2 1 9 6 9
+10 0 0 0 0 0 0 0 4 2 0 10 24 10
+11 0 0 0 0 0 0 0 8 2 0 11 1 11
+12 0 0 0 0 0 0 0 10 3 0 12 28 12
+13 0 0 0 0 0 0 0 9 3 0 13 -14 -21
+14 0 0 0 0 0 0 0 5 3 1 14 -15 -4
+15 0 0 0 0 0 0 0 6 3 1 15 -16 -23
+16 0 0 0 0 0 0 0 14 4 0 16 -17 -28
+17 0 0 0 0 0 0 0 2 4 1 17 7 17
+18 0 0 0 0 0 0 0 7 4 0 18 -19 -9
+19 0 0 0 0 0 0 0 1 4 0 19 0 19
+20 0 0 0 0 0 0 0 9 4 1 20 13 20
+21 0 0 0 0 0 0 0 13 5 0 21 -22 -30
+22 0 0 0 0 0 0 0 6 5 0 22 15 22
+23 0 0 0 0 0 0 0 3 5 1 23 -24 -3
+24 0 0 0 0 0 0 0 4 5 1 24 -25 -11
+25 0 0 0 0 0 0 0 11 5 0 25 5 25
+26 0 0 0 0 0 0 0 12 6 0 26 4 26
+27 0 0 0 0 0 0 0 14 6 1 27 16 27
+28 0 0 0 0 0 0 0 10 6 1 28 -29 -13
+29 0 0 0 0 0 0 0 13 6 1 29 21 29
+
+//Edge Data
+15 Edges In Brep
+//Index, Flags, UserId1, UserId2, Tol, Curve, Start Vertex, End Vertex, Primary Edgeuse, Param Min, Param Max
+0 0 0 0 1e-5 0 3 0 6 0e0 2e1
+1 0 0 0 1e-5 1 1 4 -20 0e0 2e1
+2 0 0 0 1e-5 2 8 3 -18 2e0 2e1
+3 0 0 0 1e-5 3 2 5 23 0e0 2e1
+4 0 0 0 1e-5 4 5 0 24 0e0 2e1
+5 0 0 0 1e-5 5 1 2 14 0e0 2e1
+6 0 0 0 1e-5 6 2 7 15 0e0 1.8e1
+7 0 0 0 1e-5 7 4 3 -9 0e0 2e1
+8 0 0 0 1e-5 8 4 5 -12 0e0 2e1
+9 0 0 0 1e-5 9 1 6 13 0e0 1.8e1
+10 0 0 0 4e-5 10 6 7 -13 2.5e-1 7.5e-1
+11 0 0 0 1e-5 11 9 0 5 2e0 2e1
+12 0 0 0 4e-5 12 8 9 4 2.5e-1 7.5e-1
+13 0 0 0 4e-5 13 7 9 -30 0e0 1e0
+14 0 0 0 4e-5 14 8 6 -28 0e0 1e0
+
+//Vertex Data
+10 Vertices In Brep
+//Index, Flags, UserId1, UserId2, Tol, X, Y, Z
+0 0 0 0 1e-5 2e1 2e1 2e1
+1 0 0 0 1e-5 0e0 0e0 0e0
+2 0 0 0 1e-5 2e1 0e0 0e0
+3 0 0 0 1e-5 0e0 2e1 2e1
+4 0 0 0 1e-5 0e0 2e1 0e0
+5 0 0 0 1e-5 2e1 2e1 0e0
+6 0 0 0 4e-5 0e0 0e0 1.8e1
+7 0 0 0 4e-5 2e1 0e0 1.8e1
+8 0 0 0 4e-5 0e0 2e0 2e1
+9 0 0 0 4e-5 2e1 2e0 2e1
+
+// UV-Curve Data
+30 UV-Curves In Brep
+0 - UV-Curve:
+Object Type 14033
+Curve Dim 2
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 0e0
+2e1 0e0
+0e0
+0e0
+2e1
+2e1
+1 - UV-Curve:
+Object Type 14033
+Curve Dim 2
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+2e1 0e0
+2e1 2e1
+0e0
+0e0
+2e1
+2e1
+2 - UV-Curve:
+Object Type 14033
+Curve Dim 2
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 2e1
+2e1 2e1
+0e0
+0e0
+2e1
+2e1
+3 - UV-Curve:
+Object Type 14033
+Curve Dim 2
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 0e0
+0e0 2e1
+0e0
+0e0
+2e1
+2e1
+4 - UV-Curve:
+Object Type 14010
+Curve Dim 2
+0e0 2e0 0e0 SmLine Line Point 
+1e0 0e0 0e0 SmLine Line Vector 
+0e0 1e0 SmLine Line Domain 
+2e1 SmLine Line Scale 
+0 SmLine InsideOut Flag 
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 2e0
+2e1 2e0
+2.5e-1
+2.5e-1
+7.5e-1
+7.5e-1
+5 - UV-Curve:
+Object Type 14010
+Curve Dim 2
+2e1 0e0 0e0 SmLine Line Point 
+0e0 1e0 0e0 SmLine Line Vector 
+1e-1 1e0 SmLine Line Domain 
+2e1 SmLine Line Scale 
+0 SmLine InsideOut Flag 
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+2e1 2e0
+2e1 2e1
+2e0
+2e0
+2e1
+2e1
+6 - UV-Curve:
+Object Type 14010
+Curve Dim 2
+0e0 2e1 0e0 SmLine Line Point 
+1e0 0e0 0e0 SmLine Line Vector 
+0e0 1e0 SmLine Line Domain 
+2e1 SmLine Line Scale 
+0 SmLine InsideOut Flag 
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 2e1
+2e1 2e1
+0e0
+0e0
+2e1
+2e1
+7 - UV-Curve:
+Object Type 14010
+Curve Dim 2
+0e0 0e0 0e0 SmLine Line Point 
+0e0 1e0 0e0 SmLine Line Vector 
+1e-1 1e0 SmLine Line Domain 
+2e1 SmLine Line Scale 
+0 SmLine InsideOut Flag 
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 2e0
+0e0 2e1
+2e0
+2e0
+2e1
+2e1
+8 - UV-Curve:
+Object Type 14033
+Curve Dim 2
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 0e0
+2e1 0e0
+0e0
+0e0
+2e1
+2e1
+9 - UV-Curve:
+Object Type 14033
+Curve Dim 2
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+2e1 0e0
+2e1 2e1
+0e0
+0e0
+2e1
+2e1
+10 - UV-Curve:
+Object Type 14033
+Curve Dim 2
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 2e1
+2e1 2e1
+0e0
+0e0
+2e1
+2e1
+11 - UV-Curve:
+Object Type 14033
+Curve Dim 2
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 0e0
+0e0 2e1
+0e0
+0e0
+2e1
+2e1
+12 - UV-Curve:
+Object Type 14010
+Curve Dim 2
+0e0 1.8e1 0e0 SmLine Line Point 
+1e0 0e0 0e0 SmLine Line Vector 
+0e0 1e0 SmLine Line Domain 
+2e1 SmLine Line Scale 
+0 SmLine InsideOut Flag 
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 1.8e1
+2e1 1.8e1
+2.5e-1
+2.5e-1
+7.5e-1
+7.5e-1
+13 - UV-Curve:
+Object Type 14010
+Curve Dim 2
+0e0 0e0 0e0 SmLine Line Point 
+0e0 1e0 0e0 SmLine Line Vector 
+0e0 9e-1 SmLine Line Domain 
+2e1 SmLine Line Scale 
+0 SmLine InsideOut Flag 
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 0e0
+0e0 1.8e1
+0e0
+0e0
+1.8e1
+1.8e1
+14 - UV-Curve:
+Object Type 14010
+Curve Dim 2
+0e0 0e0 0e0 SmLine Line Point 
+1e0 0e0 0e0 SmLine Line Vector 
+0e0 1e0 SmLine Line Domain 
+2e1 SmLine Line Scale 
+0 SmLine InsideOut Flag 
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 0e0
+2e1 0e0
+0e0
+0e0
+2e1
+2e1
+15 - UV-Curve:
+Object Type 14010
+Curve Dim 2
+2e1 0e0 0e0 SmLine Line Point 
+0e0 1e0 0e0 SmLine Line Vector 
+0e0 9e-1 SmLine Line Domain 
+2e1 SmLine Line Scale 
+0 SmLine InsideOut Flag 
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+2e1 0e0
+2e1 1.8e1
+0e0
+0e0
+1.8e1
+1.8e1
+16 - UV-Curve:
+Object Type 14033
+Curve Dim 2
+2 Number of Control Points 
+2 Degree 
+1 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+1 BSplineCurveForm Enum
+2e1 2e0 1e0
+1.4142135623730951e1 1.2180242574596342e-16 7.071067811865476e-1
+1.8e1 0e0 1e0
+0e0
+0e0
+0e0
+1e0
+1e0
+1e0
+17 - UV-Curve:
+Object Type 14033
+Curve Dim 2
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+2e1 2e0
+2e1 2e1
+2e0
+2e0
+2e1
+2e1
+18 - UV-Curve:
+Object Type 14033
+Curve Dim 2
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 2e1
+2e1 2e1
+0e0
+0e0
+2e1
+2e1
+19 - UV-Curve:
+Object Type 14033
+Curve Dim 2
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 0e0
+0e0 2e1
+0e0
+0e0
+2e1
+2e1
+20 - UV-Curve:
+Object Type 14033
+Curve Dim 2
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 0e0
+1.8e1 0e0
+0e0
+0e0
+1.8e1
+1.8e1
+21 - UV-Curve:
+Object Type 14033
+Curve Dim 2
+2 Number of Control Points 
+2 Degree 
+1 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+1 BSplineCurveForm Enum
+0e0 1.8e1 1e0
+1.2180242574596342e-16 1.4142135623730951e1 7.071067811865476e-1
+2e0 2e1 1e0
+0e0
+0e0
+0e0
+1e0
+1e0
+1e0
+22 - UV-Curve:
+Object Type 14010
+Curve Dim 2
+0e0 0e0 0e0 SmLine Line Point 
+0e0 1e0 0e0 SmLine Line Vector 
+0e0 9e-1 SmLine Line Domain 
+2e1 SmLine Line Scale 
+0 SmLine InsideOut Flag 
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 0e0
+0e0 1.8e1
+0e0
+0e0
+1.8e1
+1.8e1
+23 - UV-Curve:
+Object Type 14010
+Curve Dim 2
+0e0 0e0 0e0 SmLine Line Point 
+1e0 0e0 0e0 SmLine Line Vector 
+0e0 1e0 SmLine Line Domain 
+2e1 SmLine Line Scale 
+0 SmLine InsideOut Flag 
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 0e0
+2e1 0e0
+0e0
+0e0
+2e1
+2e1
+24 - UV-Curve:
+Object Type 14010
+Curve Dim 2
+2e1 0e0 0e0 SmLine Line Point 
+0e0 1e0 0e0 SmLine Line Vector 
+0e0 1e0 SmLine Line Domain 
+2e1 SmLine Line Scale 
+0 SmLine InsideOut Flag 
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+2e1 0e0
+2e1 2e1
+0e0
+0e0
+2e1
+2e1
+25 - UV-Curve:
+Object Type 14010
+Curve Dim 2
+0e0 2e1 0e0 SmLine Line Point 
+1e0 0e0 0e0 SmLine Line Vector 
+1e-1 1e0 SmLine Line Domain 
+2e1 SmLine Line Scale 
+0 SmLine InsideOut Flag 
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+2e0 2e1
+2e1 2e1
+2e0
+2e0
+2e1
+2e1
+26 - UV-Curve:
+Object Type 14033
+Curve Dim 2
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 2.5e-1
+0e0 7.5e-1
+2.5e-1
+2.5e-1
+7.5e-1
+7.5e-1
+27 - UV-Curve:
+Object Type 14033
+Curve Dim 2
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 2.5e-1
+1e0 2.5e-1
+0e0
+0e0
+1e0
+1e0
+28 - UV-Curve:
+Object Type 14033
+Curve Dim 2
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+1e0 2.5e-1
+1e0 7.5e-1
+2.5e-1
+2.5e-1
+7.5e-1
+7.5e-1
+29 - UV-Curve:
+Object Type 14033
+Curve Dim 2
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+2 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+1e0 7.5e-1
+0e0 7.5e-1
+0e0
+0e0
+1e0
+1e0
+
+// 3D-Curve Data
+15 3D-Curves In Brep
+0 - 3D-Curve
+Object Type 14010
+Curve Dim 3
+0e0 2e1 2e1 SmLine Line Point 
+1e0 0e0 0e0 SmLine Line Vector 
+0e0 1e0 SmLine Line Domain 
+2e1 SmLine Line Scale 
+0 SmLine InsideOut Flag 
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+3 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 2e1 2e1
+2e1 2e1 2e1
+0e0
+0e0
+2e1
+2e1
+1 - 3D-Curve
+Object Type 14010
+Curve Dim 3
+0e0 0e0 0e0 SmLine Line Point 
+0e0 1e0 0e0 SmLine Line Vector 
+0e0 1e0 SmLine Line Domain 
+2e1 SmLine Line Scale 
+0 SmLine InsideOut Flag 
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+3 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 0e0 0e0
+0e0 2e1 0e0
+0e0
+0e0
+2e1
+2e1
+2 - 3D-Curve
+Object Type 14010
+Curve Dim 3
+0e0 0e0 2e1 SmLine Line Point 
+0e0 1e0 0e0 SmLine Line Vector 
+1e-1 1e0 SmLine Line Domain 
+2e1 SmLine Line Scale 
+0 SmLine InsideOut Flag 
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+3 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 2e0 2e1
+0e0 2e1 2e1
+2e0
+2e0
+2e1
+2e1
+3 - 3D-Curve
+Object Type 14010
+Curve Dim 3
+2e1 0e0 0e0 SmLine Line Point 
+0e0 1e0 0e0 SmLine Line Vector 
+0e0 1e0 SmLine Line Domain 
+2e1 SmLine Line Scale 
+0 SmLine InsideOut Flag 
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+3 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+2e1 0e0 0e0
+2e1 2e1 0e0
+0e0
+0e0
+2e1
+2e1
+4 - 3D-Curve
+Object Type 14010
+Curve Dim 3
+2e1 2e1 0e0 SmLine Line Point 
+0e0 0e0 1e0 SmLine Line Vector 
+0e0 1e0 SmLine Line Domain 
+2e1 SmLine Line Scale 
+0 SmLine InsideOut Flag 
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+3 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+2e1 2e1 0e0
+2e1 2e1 2e1
+0e0
+0e0
+2e1
+2e1
+5 - 3D-Curve
+Object Type 14010
+Curve Dim 3
+0e0 0e0 0e0 SmLine Line Point 
+1e0 0e0 0e0 SmLine Line Vector 
+0e0 1e0 SmLine Line Domain 
+2e1 SmLine Line Scale 
+0 SmLine InsideOut Flag 
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+3 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 0e0 0e0
+2e1 0e0 0e0
+0e0
+0e0
+2e1
+2e1
+6 - 3D-Curve
+Object Type 14010
+Curve Dim 3
+2e1 0e0 0e0 SmLine Line Point 
+0e0 0e0 1e0 SmLine Line Vector 
+0e0 9e-1 SmLine Line Domain 
+2e1 SmLine Line Scale 
+0 SmLine InsideOut Flag 
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+3 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+2e1 0e0 0e0
+2e1 0e0 1.8e1
+0e0
+0e0
+1.8e1
+1.8e1
+7 - 3D-Curve
+Object Type 14010
+Curve Dim 3
+0e0 2e1 0e0 SmLine Line Point 
+0e0 0e0 1e0 SmLine Line Vector 
+0e0 1e0 SmLine Line Domain 
+2e1 SmLine Line Scale 
+0 SmLine InsideOut Flag 
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+3 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 2e1 0e0
+0e0 2e1 2e1
+0e0
+0e0
+2e1
+2e1
+8 - 3D-Curve
+Object Type 14010
+Curve Dim 3
+0e0 2e1 0e0 SmLine Line Point 
+1e0 0e0 0e0 SmLine Line Vector 
+0e0 1e0 SmLine Line Domain 
+2e1 SmLine Line Scale 
+0 SmLine InsideOut Flag 
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+3 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 2e1 0e0
+2e1 2e1 0e0
+0e0
+0e0
+2e1
+2e1
+9 - 3D-Curve
+Object Type 14010
+Curve Dim 3
+0e0 0e0 0e0 SmLine Line Point 
+0e0 0e0 1e0 SmLine Line Vector 
+0e0 9e-1 SmLine Line Domain 
+2e1 SmLine Line Scale 
+0 SmLine InsideOut Flag 
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+3 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 0e0 0e0
+0e0 0e0 1.8e1
+0e0
+0e0
+1.8e1
+1.8e1
+10 - 3D-Curve
+Object Type 14010
+Curve Dim 3
+-1e1 0e0 1.8e1 SmLine Line Point 
+1e0 0e0 0e0 SmLine Line Vector 
+2.5e-1 7.5e-1 SmLine Line Domain 
+4e1 SmLine Line Scale 
+0 SmLine InsideOut Flag 
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+3 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 0e0 1.8e1
+2e1 0e0 1.8e1
+2.5e-1
+2.5e-1
+7.5e-1
+7.5e-1
+11 - 3D-Curve
+Object Type 14010
+Curve Dim 3
+2e1 0e0 2e1 SmLine Line Point 
+0e0 1e0 0e0 SmLine Line Vector 
+1e-1 1e0 SmLine Line Domain 
+2e1 SmLine Line Scale 
+0 SmLine InsideOut Flag 
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+3 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+2e1 2e0 2e1
+2e1 2e1 2e1
+2e0
+2e0
+2e1
+2e1
+12 - 3D-Curve
+Object Type 14010
+Curve Dim 3
+-1e1 2e0 2e1 SmLine Line Point 
+1e0 0e0 0e0 SmLine Line Vector 
+2.5e-1 7.5e-1 SmLine Line Domain 
+4e1 SmLine Line Scale 
+0 SmLine InsideOut Flag 
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+3 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 2e0 2e1
+2e1 2e0 2e1
+2.5e-1
+2.5e-1
+7.5e-1
+7.5e-1
+13 - 3D-Curve
+Object Type 14021
+Curve Dim 3
+2e1 2e0 1.8e1 SmEllipse Axis Origin 
+0e0 0e0 1e0 SmEllipse X Axis
+-0e0 1e0 -0e0 SmEllipse Y Axis
+2.7e2 3.6e2 SmEllipse angular arc domain in degrees 
+2e0 SmEllipse X_Axis radius 
+2e0 SmEllipse Y_Axis radius 
+0 SmEllipse InsideOut Flag 
+ SmEllipse->PolarConverter 
+1 SmPolarConversion PolarConversionPossible - TRUE=tables are initialized 
+2 SmPolarConversion Number of Natural Knots 
+2 SmPolarConversion Number of Angles 
+1 SmPolarConversion Number of ExactConversion Flags 
+0 SmPolarConversion TRUE = Has Curve for stored conversions, FALSE = back pointer 
+0e0 1e0 
+2.7e2 3.6e2 
+1 
+Has No Copy of SmPolarConversion->CurveBeingConverted 
+2 Number of Control Points 
+2 Degree 
+1 RationalFlag 
+3 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+1 BSplineCurveForm Enum
+2e1 0e0 1.8e1 1e0
+1.4142135623730951e1 1.2180242574596342e-16 1.4142135623730951e1 7.071067811865476e-1
+2e1 2e0 2e1 1e0
+0e0
+0e0
+0e0
+1e0
+1e0
+1e0
+14 - 3D-Curve
+Object Type 14021
+Curve Dim 3
+0e0 2e0 1.8e1 SmEllipse Axis Origin 
+0e0 0e0 1e0 SmEllipse X Axis
+0e0 -1e0 0e0 SmEllipse Y Axis
+0e0 9e1 SmEllipse angular arc domain in degrees 
+2e0 SmEllipse X_Axis radius 
+2e0 SmEllipse Y_Axis radius 
+0 SmEllipse InsideOut Flag 
+ SmEllipse->PolarConverter 
+1 SmPolarConversion PolarConversionPossible - TRUE=tables are initialized 
+2 SmPolarConversion Number of Natural Knots 
+2 SmPolarConversion Number of Angles 
+1 SmPolarConversion Number of ExactConversion Flags 
+0 SmPolarConversion TRUE = Has Curve for stored conversions, FALSE = back pointer 
+0e0 1e0 
+0e0 9e1 
+1 
+Has No Copy of SmPolarConversion->CurveBeingConverted 
+2 Number of Control Points 
+2 Degree 
+1 RationalFlag 
+3 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+1 BSplineCurveForm Enum
+0e0 2e0 2e1 1e0
+0e0 1.2180242574596342e-16 1.4142135623730951e1 7.071067811865476e-1
+0e0 0e0 1.8e1 1e0
+0e0
+0e0
+0e0
+1e0
+1e0
+1e0
+
+//Surface Data
+7 Surfaces In Brep
+0 - Surface
+Object Type 15011
+0e0 0e0 0e0 SmPlane Placement Origin 
+0e0 1e0 0e0 SmPlane Placement X Axis 
+1e0 0e0 0e0 SmPlane Placement Y Axis 
+0e0 0e0 2e1 2e1 SmPlane AnalUVDomain 
+1e0 1e0 SmPlane UV Scale 
+1 1
+1 1
+0
+1 BSplineSurface Knot Type Flag 
+9 BSplineSurfaceForm Flag 
+0e0 0e0 0e0
+2e1 0e0 0e0
+0e0 2e1 0e0
+2e1 2e1 0e0
+0e0
+0e0
+2e1
+2e1
+0e0
+0e0
+2e1
+2e1
+1 - Surface
+Object Type 15011
+0e0 0e0 2e1 SmPlane Placement Origin 
+1e0 0e0 0e0 SmPlane Placement X Axis 
+0e0 1e0 0e0 SmPlane Placement Y Axis 
+0e0 0e0 2e1 2e1 SmPlane AnalUVDomain 
+1e0 1e0 SmPlane UV Scale 
+1 1
+1 1
+0
+1 BSplineSurface Knot Type Flag 
+9 BSplineSurfaceForm Flag 
+0e0 0e0 2e1
+0e0 2e1 2e1
+2e1 0e0 2e1
+2e1 2e1 2e1
+0e0
+0e0
+2e1
+2e1
+0e0
+0e0
+2e1
+2e1
+2 - Surface
+Object Type 15011
+0e0 2e1 0e0 SmPlane Placement Origin 
+0e0 0e0 1e0 SmPlane Placement X Axis 
+1e0 0e0 0e0 SmPlane Placement Y Axis 
+0e0 0e0 2e1 2e1 SmPlane AnalUVDomain 
+1e0 1e0 SmPlane UV Scale 
+1 1
+1 1
+0
+1 BSplineSurface Knot Type Flag 
+9 BSplineSurfaceForm Flag 
+0e0 2e1 0e0
+2e1 2e1 0e0
+0e0 2e1 2e1
+2e1 2e1 2e1
+0e0
+0e0
+2e1
+2e1
+0e0
+0e0
+2e1
+2e1
+3 - Surface
+Object Type 15011
+0e0 0e0 0e0 SmPlane Placement Origin 
+1e0 0e0 0e0 SmPlane Placement X Axis 
+0e0 0e0 1e0 SmPlane Placement Y Axis 
+0e0 0e0 2e1 2e1 SmPlane AnalUVDomain 
+1e0 1e0 SmPlane UV Scale 
+1 1
+1 1
+0
+1 BSplineSurface Knot Type Flag 
+9 BSplineSurfaceForm Flag 
+0e0 0e0 0e0
+0e0 0e0 2e1
+2e1 0e0 0e0
+2e1 0e0 2e1
+0e0
+0e0
+2e1
+2e1
+0e0
+0e0
+2e1
+2e1
+4 - Surface
+Object Type 15011
+0e0 0e0 0e0 SmPlane Placement Origin 
+0e0 0e0 1e0 SmPlane Placement X Axis 
+0e0 1e0 0e0 SmPlane Placement Y Axis 
+0e0 0e0 2e1 2e1 SmPlane AnalUVDomain 
+1e0 1e0 SmPlane UV Scale 
+1 1
+1 1
+0
+1 BSplineSurface Knot Type Flag 
+9 BSplineSurfaceForm Flag 
+0e0 0e0 0e0
+0e0 2e1 0e0
+0e0 0e0 2e1
+0e0 2e1 2e1
+0e0
+0e0
+2e1
+2e1
+0e0
+0e0
+2e1
+2e1
+5 - Surface
+Object Type 15011
+2e1 0e0 0e0 SmPlane Placement Origin 
+0e0 1e0 0e0 SmPlane Placement X Axis 
+0e0 0e0 1e0 SmPlane Placement Y Axis 
+0e0 0e0 2e1 2e1 SmPlane AnalUVDomain 
+1e0 1e0 SmPlane UV Scale 
+1 1
+1 1
+0
+1 BSplineSurface Knot Type Flag 
+9 BSplineSurfaceForm Flag 
+2e1 0e0 0e0
+2e1 0e0 2e1
+2e1 2e1 0e0
+2e1 2e1 2e1
+0e0
+0e0
+2e1
+2e1
+0e0
+0e0
+2e1
+2e1
+6 - Surface
+Object Type 15012
+2e0 SmCone Radius of the cone in the plane passing through origin 
+0e0 SmCone SemiAngleDeg between -90 and 90 
+0 SmCone InsideOutFlag: FALSE= m_vPosition.ZAxis points from bot to top of Nurb, TRUE=Inverted 
+0 SmSurfOfRevolution Make Nurb GenCurve Flag, FALSE=Unbounded analytic, TRUE=bounded 
+1 SmSurfOfRevolution Planar Generator Curve 
+-1e1 2e0 1.8e1 SmSurfOfRevolution Placement Origin 
+0e0 0e0 1e0 SmSurfOfRevolution Placement X Axis 
+0e0 -1e0 0e0 SmSurfOfRevolution Placement Y Axis 
+0e0 1e1 9e1 3e1 SmSurfOfRevolution AnalUVDomain 
+0 SmSurfOfRevolution SwapUV Boolean 
+ SmSurfOfRevolution->GenCurve 
+Object Type 14010
+Curve Dim 3
+-1e1 2e0 2e1 SmLine Line Point 
+1e0 0e0 0e0 SmLine Line Vector 
+1e1 3e1 SmLine Line Domain 
+1e0 SmLine Line Scale 
+0 SmLine InsideOut Flag 
+1 Number of Control Points 
+1 Degree 
+0 RationalFlag 
+3 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+0 BSplineCurveForm Enum
+0e0 2e0 2e1
+2e1 2e0 2e1
+2.5e-1
+2.5e-1
+7.5e-1
+7.5e-1
+ SmSurfOfRevolution->PolarConverter 
+1 SmPolarConversion PolarConversionPossible - TRUE=tables are initialized 
+2 SmPolarConversion Number of Natural Knots 
+2 SmPolarConversion Number of Angles 
+1 SmPolarConversion Number of ExactConversion Flags 
+1 SmPolarConversion TRUE = Has Curve for stored conversions, FALSE = back pointer 
+0e0 1e0 
+0e0 9e1 
+1 
+ SmPolarConversion->CurveBeingConverted 
+Object Type 14021
+Curve Dim 3
+0e0 2e0 1.8e1 SmEllipse Axis Origin 
+0e0 0e0 1e0 SmEllipse X Axis
+0e0 -1e0 0e0 SmEllipse Y Axis
+0e0 9e1 SmEllipse angular arc domain in degrees 
+2e0 SmEllipse X_Axis radius 
+2e0 SmEllipse Y_Axis radius 
+0 SmEllipse InsideOut Flag 
+ SmEllipse->PolarConverter 
+1 SmPolarConversion PolarConversionPossible - TRUE=tables are initialized 
+2 SmPolarConversion Number of Natural Knots 
+2 SmPolarConversion Number of Angles 
+1 SmPolarConversion Number of ExactConversion Flags 
+0 SmPolarConversion TRUE = Has Curve for stored conversions, FALSE = back pointer 
+0e0 1e0 
+0e0 9e1 
+1 
+Has No Copy of SmPolarConversion->CurveBeingConverted 
+2 Number of Control Points 
+2 Degree 
+1 RationalFlag 
+3 Dimension 
+1 Knot Type Enum: 1=2d NonRational, 2=3d NonRational, 3=2d Rational, 4=3d Rational
+1 BSplineCurveForm Enum
+0e0 2e0 2e1 1e0
+0e0 1.2180242574596342e-16 1.4142135623730951e1 7.071067811865476e-1
+0e0 0e0 1.8e1 1e0
+0e0
+0e0
+0e0
+1e0
+1e0
+1e0
+2 1
+2 1
+1
+1 BSplineSurface Knot Type Flag 
+4 BSplineSurfaceForm Flag 
+0e0 2e0 2e1 1e0
+2e1 2e0 2e1 1e0
+0e0 1.2180242574596342e-16 1.4142135623730951e1 7.071067811865476e-1
+1.4142135623730951e1 1.2180242574596342e-16 1.4142135623730951e1 7.071067811865476e-1
+0e0 0e0 1.8e1 1e0
+2e1 0e0 1.8e1 1e0
+0e0
+0e0
+0e0
+1e0
+1e0
+1e0
+2.5e-1
+2.5e-1
+7.5e-1
+7.5e-1
