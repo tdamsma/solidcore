@@ -1,0 +1,35 @@
+{
+  "cases": 3182,
+  "raw_changed_cases": 201,
+  "length_changed_cases": 0,
+  "changed_base_kinds": {
+    "bspline": 111,
+    "revolution": 44,
+    "offset": 27,
+    "bounded": 7,
+    "step": 12
+  },
+  "first_ops": {
+    "eval": 32,
+    "state": 98,
+    "eval_simple": 20,
+    "split": 3,
+    "eq": 2,
+    "bbox": 4,
+    "copy": 4,
+    "is_kind_of": 4,
+    "set_dist": 2,
+    "eval_pt": 9,
+    "base_offset": 1,
+    "normal": 9,
+    "reverse": 2,
+    "step_inv": 1,
+    "is_planar": 1,
+    "create_offset": 1,
+    "transform": 2,
+    "knots": 3,
+    "set_allow": 1,
+    "swap": 2
+  },
+  "note": "Finite values compared by round-trip f64 bits; nonfinite values retain explicit markers. Original baseline Debug loses NaN payload, so no full-output-byte identity claim."
+}

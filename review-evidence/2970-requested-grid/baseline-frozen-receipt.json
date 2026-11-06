@@ -1,0 +1,11 @@
+{
+  "head": "d8e79c1f1aba4d485e015f75856a39b63c8603ee",
+  "main": "b43a3ec3a342e0ba697b34e87fefc9e514d10e2f",
+  "production_offset_sha256": "2629aa850eb0ed6e60a53c8b69ba6f712f6bc7c1f455b869a6e3ec11c45e5f37",
+  "baseline_binary_sha256": "044e33cb310de7810f1c711efad724e870256a54c873f7646f07e511c63106d2",
+  "committed_goldens_sha256": "465a57da80d827ad4f3800df1230a650ce9f196810bb391d977d3b5102ce6755",
+  "cargo_tests": "2pass2intendedassertionfail;exit101",
+  "goldens": "FreshprivateCargo3182casesPASS0changed0added0removed0broken0known;fixturelinkrestoredafterinitialsetupfailure",
+  "upstream_pin": "3fd5b9548d19aa8c12c29bc9637a96d42a06f8a5",
+  "snapshot_note": "Frozen baseline executable before any production mask change; next run blesses measurements only into a new private directory."
+}

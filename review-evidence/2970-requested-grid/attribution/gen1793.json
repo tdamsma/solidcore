@@ -1,0 +1,278 @@
+{
+  "case": "gen1793",
+  "inputs": {
+    "kind": "script",
+    "off": {
+      "allow": false,
+      "base": {
+        "revolution": {
+          "build": {
+            "axis": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "mode": "canonical",
+            "point": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "gen": {
+            "cpts": [
+              [
+                -0.577997618411152,
+                0.7010022998570433,
+                0.0
+              ],
+              [
+                0.4196829503813163,
+                2.700781374755524,
+                0.0
+              ],
+              [
+                1.4006384498703395,
+                0.39513981293767136,
+                0.0
+              ]
+            ],
+            "kind": "b_spline",
+            "p": 2,
+            "u": [
+              0.0,
+              0.0,
+              0.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "oob": false,
+          "swap": true
+        }
+      },
+      "d": 0.7209447120977124,
+      "owns": true,
+      "sing": 2
+    },
+    "steps": [
+      {
+        "hu": 3,
+        "hv": 0,
+        "nzt": false,
+        "op": "eval",
+        "ul": false,
+        "upper": false,
+        "uv": [
+          0.0,
+          0.5497582256485812
+        ],
+        "via": false,
+        "vl": false
+      },
+      {
+        "hu": 8,
+        "hv": 5,
+        "nzt": true,
+        "op": "eval",
+        "ul": true,
+        "upper": false,
+        "uv": [
+          0.0,
+          0.06910319463506476
+        ],
+        "via": true,
+        "vl": true
+      },
+      {
+        "hu": 2,
+        "hv": 1,
+        "op": "eval_simple",
+        "ul": true,
+        "upper": false,
+        "uv": [
+          0.46954844862637846,
+          0.3354812826484135
+        ],
+        "via": true,
+        "vl": true
+      },
+      {
+        "hu": 2,
+        "hv": 0,
+        "nzt": true,
+        "op": "eval",
+        "ul": true,
+        "upper": true,
+        "uv": [
+          0.015225263347642293,
+          0.8831097388617972
+        ],
+        "via": true,
+        "vl": true
+      },
+      {
+        "op": "copy"
+      }
+    ]
+  },
+  "prefix_attribution": {
+    "case": "gen1793",
+    "steps": [
+      {
+        "step": 3,
+        "op": "eval",
+        "old": [
+          0.0,
+          0.09314424821306322,
+          0.3202999420325413,
+          -0.28760356977171,
+          1.6975044921456461,
+          2.4493331392451347,
+          -2.199304033390932,
+          0.05291953628621171,
+          9.78445221721709,
+          10.743201546869031
+        ],
+        "new": [
+          0.0,
+          0.09314424821306322,
+          0.3202999420325413,
+          -0.28760356977171,
+          1.6975044921456461,
+          2.4493331392451347,
+          -2.199304033390932,
+          -1.6001190049344294,
+          -7.719743824200338,
+          6.93170865868457
+        ],
+        "lengths": [
+          10,
+          10
+        ],
+        "preceding_ops": [
+          "eval",
+          "eval",
+          "eval_simple"
+        ],
+        "request": [
+          2,
+          0
+        ],
+        "changed_named_derivatives": [
+          {
+            "derivative": [
+              2,
+              0
+            ],
+            "old": [
+              0.05291953628621171,
+              9.78445221721709,
+              10.743201546869031
+            ],
+            "new": [
+              -1.6001190049344294,
+              -7.719743824200338,
+              6.93170865868457
+            ],
+            "control": [
+              -1.6001190049344294,
+              -7.719743824200338,
+              6.93170865868457
+            ]
+          }
+        ],
+        "control_mismatches": [],
+        "nonfinite_control_pairs": []
+      }
+    ]
+  },
+  "gate_changed": true,
+  "golden_difference": {
+    "case": "gen1793",
+    "changed_fields": [
+      "values.out.block[0]: [46811.31781219983,46963.9437167969,2565011.1971796732] -> [46788.349084729,46959.61471498435,2564021.3834440806]"
+    ],
+    "difference_count": 1,
+    "new_measured": {
+      "case": "gen1793",
+      "deferred": null,
+      "error": null,
+      "ints": {},
+      "topology": null,
+      "values": {
+        "out": {
+          "blocks": [
+            [
+              46788.349084729,
+              46959.61471498435,
+              2564021.3834440806
+            ]
+          ],
+          "n": 99
+        }
+      }
+    },
+    "old_committed": {
+      "case": "gen1793",
+      "deferred": null,
+      "error": null,
+      "ints": {},
+      "topology": null,
+      "values": {
+        "out": {
+          "blocks": [
+            [
+              46811.31781219983,
+              46963.9437167969,
+              2565011.1971796732
+            ]
+          ],
+          "n": 99
+        }
+      }
+    },
+    "old_measured": {
+      "case": "gen1793",
+      "deferred": null,
+      "error": null,
+      "ints": {},
+      "topology": null,
+      "values": {
+        "out": {
+          "blocks": [
+            [
+              46811.31781219983,
+              46963.9437167969,
+              2565011.1971796732
+            ]
+          ],
+          "n": 99
+        }
+      }
+    }
+  },
+  "point_oracle": [
+    {
+      "case": "gen1793",
+      "step": 3,
+      "query": {
+        "hu": 2,
+        "hv": 0,
+        "nzt": true,
+        "op": "eval",
+        "ul": true,
+        "upper": true,
+        "uv": [
+          0.015225263347642293,
+          0.8831097388617972
+        ],
+        "via": true,
+        "vl": true
+      },
+      "status": "outside_oracle_scope",
+      "reason": "non-B-spline or wrapped nested-offset provider"
+    }
+  ]
+}
