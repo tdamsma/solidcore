@@ -1,0 +1,22 @@
+{
+  "base": "3ed6194755cc2a3298882373ff465adeb443485a",
+  "kernel_fix": "8100d8111",
+  "feature": "profile",
+  "library": "/tmp/solidcore-2905-vase/bin/vase-profile/goldens/deps/libsolidcore-bc218bf3b5f9d062.rlib",
+  "library_sha256": "c7b858050a7cdc69672b7a5f914540b03eac2a114c088581d19d8b07b4f5069d",
+  "source_sha256": "372564a11fd506e5bf2449099aa87926ab58707cf4197bbfad0bbac40a9cec6a",
+  "kernel_source_tree": "03da28f5b38f7cccf6407391891c6af716e49ed5",
+  "case": "#2905 vase, equal chamfer setbacks2.995",
+  "input_sha256": "1d0021fc94c41d1c39361c4b44a578c97875f03965c9b84dba7eb944732caf65",
+  "observed_output": {
+    "counts": [
+      6,
+      9,
+      5
+    ],
+    "volume": 112773.94647118454,
+    "level2": "valid",
+    "same_bytes_with_profile_enabled": true
+  },
+  "count_interpretation": "987 calls to gn_certify_span,75307 calls to gn_enclose_over during construction. These are call counts, not the number of final net spans. Other counters cover only the work instrumented by the existing profile feature."
+}

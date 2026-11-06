@@ -1,0 +1,48 @@
+{
+  "construction": {
+    "scope_calls": {
+      "blend::certificate::gn_enclose_over": 75307,
+      "blend::certificate::gn_certify_span": 987,
+      "blend::session::merge": 1,
+      "blend::solver::trace": 1,
+      "blend::session::insert_intersection_topology": 1,
+      "blend::executive::refuse_irregular_balls": 1,
+      "blend::executive::refuse_blends_larger_than_faces": 1,
+      "blend::executive::classify_rails": 1,
+      "blend::executive::stitch": 1,
+      "blend::executive::corner_vertices": 1,
+      "blend::executive::build_faces": 1,
+      "blend::executive::corner_edges": 1,
+      "blend::solver::calc_fillet_geom": 1,
+      "blend::executive::create_fillet_brep": 1,
+      "blend::executive::trim_rails": 1,
+      "blend::session::tag_and_merge": 1,
+      "blend::session::keep_features": 1,
+      "blend::executive::refuse_blends_cutting_the_part": 1,
+      "blend::solver::trace_setup": 1,
+      "blend::executive::shrink_faces": 1,
+      "blend::session::filleting": 1,
+      "blend::session::create_corners": 1,
+      "blend::solver::sort_points": 1,
+      "blend::executive::solver_geometry": 1,
+      "blend::solver::post_process": 1,
+      "blend::executive::refuse_collapsed_offsets": 1,
+      "blend::executive::adjust_corner_topology": 1,
+      "blend::executive::refuse_rails_below_resolution": 1
+    },
+    "total_self_counters": {
+      "evaluations": 24400,
+      "solves": 14260,
+      "newton_steps": 24495,
+      "net_evaluations": 296,
+      "trace_passes": 1
+    }
+  },
+  "postcheck": {
+    "scope_calls": {},
+    "total_self_counters": {}
+  },
+  "profiled_body_sha256": "8cbdac0bb4a249153e89f9318fe2f3ab68532d76a9d4acd7d6e40c02a5afa6a1",
+  "normal_body_sha256": "8cbdac0bb4a249153e89f9318fe2f3ab68532d76a9d4acd7d6e40c02a5afa6a1",
+  "bodies_identical": true
+}
