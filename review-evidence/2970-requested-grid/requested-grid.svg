@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1000" height="525" viewBox="0 0 1000 525">
+  <title>Offset requested derivative slots</title>
+  <g id="Layer_1" data-name="Layer 1">
+    <rect x="0" y="0" width="1000" height="525" fill="#ffffff"/>
+    <text transform="matrix(1 0 0 1 50 40)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#000000"><tspan x="0" y="0">Offset derivatives: a mixed write overwrites Duu</tspan></text>
+    <text transform="matrix(1 0 0 1 50 72)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="14" fill="#000000"><tspan x="0" y="0">Request: hu = 3, hv = 1, upper half. Each u row has two v slots.</tspan></text>
+    <text transform="matrix(1 0 0 1 548 112)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="14" font-weight="bold" fill="#000000" text-anchor="middle"><tspan x="0" y="0">Unrequested D(1,2)</tspan></text>
+    <line x1="548" y1="121" x2="548" y2="174" fill="none" stroke="#1f6fb2" stroke-width="3" stroke-miterlimit="10"/>
+    <line x1="541" y1="163" x2="548" y2="174" fill="none" stroke="#1f6fb2" stroke-width="3" stroke-miterlimit="10"/>
+    <line x1="555" y1="163" x2="548" y2="174" fill="none" stroke="#1f6fb2" stroke-width="3" stroke-miterlimit="10"/>
+    <text transform="matrix(1 0 0 1 50 151)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#000000"><tspan x="0" y="0">Current writes</tspan></text>
+    <text transform="matrix(1 0 0 1 50 339)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#000000"><tspan x="0" y="0">Intended coordinate mask</tspan></text>
+    <rect x="80" y="175" width="104" height="70" fill="#ffffff" stroke="#555555" stroke-miterlimit="10"/>
+    <text transform="matrix(1 0 0 1 132 200)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="14" fill="#000000" text-anchor="middle"><tspan x="0" y="0">D(0,0)</tspan></text>
+    <text transform="matrix(1 0 0 1 132 268)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="12" fill="#000000" text-anchor="middle"><tspan x="0" y="0">slot 0</tspan></text>
+    <rect x="184" y="175" width="104" height="70" fill="#ffffff" stroke="#555555" stroke-miterlimit="10"/>
+    <text transform="matrix(1 0 0 1 236 200)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="14" fill="#000000" text-anchor="middle"><tspan x="0" y="0">D(0,1)</tspan></text>
+    <text transform="matrix(1 0 0 1 236 268)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="12" fill="#000000" text-anchor="middle"><tspan x="0" y="0">slot 1</tspan></text>
+    <rect x="288" y="175" width="104" height="70" fill="#ffffff" stroke="#555555" stroke-miterlimit="10"/>
+    <text transform="matrix(1 0 0 1 340 200)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="14" fill="#000000" text-anchor="middle"><tspan x="0" y="0">D(1,0)</tspan></text>
+    <text transform="matrix(1 0 0 1 340 268)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="12" fill="#000000" text-anchor="middle"><tspan x="0" y="0">slot 2</tspan></text>
+    <rect x="392" y="175" width="104" height="70" fill="#ffffff" stroke="#555555" stroke-miterlimit="10"/>
+    <text transform="matrix(1 0 0 1 444 200)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="14" fill="#000000" text-anchor="middle"><tspan x="0" y="0">D(1,1)</tspan></text>
+    <text transform="matrix(1 0 0 1 444 268)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="12" fill="#000000" text-anchor="middle"><tspan x="0" y="0">slot 3</tspan></text>
+    <rect x="496" y="175" width="104" height="70" fill="#dce9f5" stroke="#555555" stroke-miterlimit="10"/>
+    <text transform="matrix(1 0 0 1 548 200)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="14" font-weight="bold" fill="#000000" text-anchor="middle"><tspan x="0" y="0">D(2,0)</tspan></text>
+    <text transform="matrix(1 0 0 1 548 225)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="12" fill="#000000" text-anchor="middle"><tspan x="0" y="0">overwritten</tspan></text>
+    <text transform="matrix(1 0 0 1 548 268)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="12" fill="#000000" text-anchor="middle"><tspan x="0" y="0">slot 4</tspan></text>
+    <rect x="600" y="175" width="104" height="70" fill="#ffffff" stroke="#555555" stroke-miterlimit="10"/>
+    <text transform="matrix(1 0 0 1 652 200)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="14" fill="#000000" text-anchor="middle"><tspan x="0" y="0">D(2,1)</tspan></text>
+    <text transform="matrix(1 0 0 1 652 268)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="12" fill="#000000" text-anchor="middle"><tspan x="0" y="0">slot 5</tspan></text>
+    <rect x="704" y="175" width="104" height="70" fill="#ffffff" stroke="#555555" stroke-miterlimit="10"/>
+    <text transform="matrix(1 0 0 1 756 200)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="14" fill="#000000" text-anchor="middle"><tspan x="0" y="0">D(3,0)</tspan></text>
+    <text transform="matrix(1 0 0 1 756 268)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="12" fill="#000000" text-anchor="middle"><tspan x="0" y="0">slot 6</tspan></text>
+    <rect x="808" y="175" width="104" height="70" fill="#f0f0f0" stroke="#555555" stroke-miterlimit="10"/>
+    <text transform="matrix(1 0 0 1 860 200)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="14" fill="#000000" text-anchor="middle"><tspan x="0" y="0">D(3,1)</tspan></text>
+    <text transform="matrix(1 0 0 1 860 225)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="12" fill="#000000" text-anchor="middle"><tspan x="0" y="0">out of budget</tspan></text>
+    <text transform="matrix(1 0 0 1 860 268)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="12" fill="#000000" text-anchor="middle"><tspan x="0" y="0">slot 7</tspan></text>
+    <rect x="80" y="360" width="104" height="70" fill="#ffffff" stroke="#555555" stroke-miterlimit="10"/>
+    <text transform="matrix(1 0 0 1 132 385)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="14" fill="#000000" text-anchor="middle"><tspan x="0" y="0">D(0,0)</tspan></text>
+    <text transform="matrix(1 0 0 1 132 453)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="12" fill="#000000" text-anchor="middle"><tspan x="0" y="0">slot 0</tspan></text>
+    <rect x="184" y="360" width="104" height="70" fill="#ffffff" stroke="#555555" stroke-miterlimit="10"/>
+    <text transform="matrix(1 0 0 1 236 385)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="14" fill="#000000" text-anchor="middle"><tspan x="0" y="0">D(0,1)</tspan></text>
+    <text transform="matrix(1 0 0 1 236 453)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="12" fill="#000000" text-anchor="middle"><tspan x="0" y="0">slot 1</tspan></text>
+    <rect x="288" y="360" width="104" height="70" fill="#ffffff" stroke="#555555" stroke-miterlimit="10"/>
+    <text transform="matrix(1 0 0 1 340 385)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="14" fill="#000000" text-anchor="middle"><tspan x="0" y="0">D(1,0)</tspan></text>
+    <text transform="matrix(1 0 0 1 340 453)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="12" fill="#000000" text-anchor="middle"><tspan x="0" y="0">slot 2</tspan></text>
+    <rect x="392" y="360" width="104" height="70" fill="#ffffff" stroke="#555555" stroke-miterlimit="10"/>
+    <text transform="matrix(1 0 0 1 444 385)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="14" fill="#000000" text-anchor="middle"><tspan x="0" y="0">D(1,1)</tspan></text>
+    <text transform="matrix(1 0 0 1 444 453)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="12" fill="#000000" text-anchor="middle"><tspan x="0" y="0">slot 3</tspan></text>
+    <rect x="496" y="360" width="104" height="70" fill="#dce9f5" stroke="#555555" stroke-miterlimit="10"/>
+    <text transform="matrix(1 0 0 1 548 385)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="14" font-weight="bold" fill="#000000" text-anchor="middle"><tspan x="0" y="0">D(2,0)</tspan></text>
+    <text transform="matrix(1 0 0 1 548 410)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="12" fill="#000000" text-anchor="middle"><tspan x="0" y="0">Duu kept</tspan></text>
+    <text transform="matrix(1 0 0 1 548 453)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="12" fill="#000000" text-anchor="middle"><tspan x="0" y="0">slot 4</tspan></text>
+    <rect x="600" y="360" width="104" height="70" fill="#ffffff" stroke="#555555" stroke-miterlimit="10"/>
+    <text transform="matrix(1 0 0 1 652 385)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="14" fill="#000000" text-anchor="middle"><tspan x="0" y="0">D(2,1)</tspan></text>
+    <text transform="matrix(1 0 0 1 652 453)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="12" fill="#000000" text-anchor="middle"><tspan x="0" y="0">slot 5</tspan></text>
+    <rect x="704" y="360" width="104" height="70" fill="#ffffff" stroke="#555555" stroke-miterlimit="10"/>
+    <text transform="matrix(1 0 0 1 756 385)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="14" fill="#000000" text-anchor="middle"><tspan x="0" y="0">D(3,0)</tspan></text>
+    <text transform="matrix(1 0 0 1 756 453)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="12" fill="#000000" text-anchor="middle"><tspan x="0" y="0">slot 6</tspan></text>
+    <rect x="808" y="360" width="104" height="70" fill="#f0f0f0" stroke="#555555" stroke-miterlimit="10"/>
+    <text transform="matrix(1 0 0 1 860 385)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="14" fill="#000000" text-anchor="middle"><tspan x="0" y="0">D(3,1)</tspan></text>
+    <text transform="matrix(1 0 0 1 860 410)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="12" fill="#000000" text-anchor="middle"><tspan x="0" y="0">out of budget</tspan></text>
+    <text transform="matrix(1 0 0 1 860 453)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="12" fill="#000000" text-anchor="middle"><tspan x="0" y="0">slot 7</tspan></text>
+    <text transform="matrix(1 0 0 1 80 302)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="14" fill="#000000"><tspan x="0" y="0">D(2,0): 2 x 2 + 0 = 4       Invalid D(1,2): 1 x 2 + 2 = 4</tspan></text>
+    <text transform="matrix(1 0 0 1 80 493)" x="0" y="0" xml:space="preserve" font-family="Helvetica, sans-serif" font-size="14" font-weight="bold" fill="#1f6fb2"><tspan x="0" y="0">Require both requested coordinates and the upper-half total-order budget.</tspan></text>
+  </g>
+</svg>

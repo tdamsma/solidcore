@@ -1,0 +1,10 @@
+{
+  "generator": "VectorCraft official headless CLI0.21.1; single atomic command_batch; 67 successful steps",
+  "archive_sha256": "383bba06fbde7cb87c7e137937ad516a9a585491c5a927d8631ee54bbf1d4e93",
+  "command_batch_sha256": "bee1946fe32009d29d392e55313cb69c1370dd626adc67ac91bdab2de50b8e59",
+  "svg_outlineText": false,
+  "render_inspected": true,
+  "font": "Helvetica requested; release renderer reports Source Sans3 fallback on this Linux host",
+  "meaning": "Current address collision for hu3 hv1 upper=true, versus intended coordinate mask. Schematic, not a body render or assertion that a patch has already passed.",
+  "source_main": "b43a3ec3a342e0ba697b34e87fefc9e514d10e2f"
+}
