@@ -1,0 +1,13 @@
+    Blocking waiting for file lock on build directory
+   Compiling solidcore v1.0.1 (/tmp/solidcore-2954-double-shell/crates/solidcore)
+    Finished `goldens` profile [optimized] target(s) in 8m 07s
+     Running unittests src/lib.rs (bin/goldens/deps/solidcore-0d568b637c6fc391)
+
+running 1 test
+test offset::offset_executive::p2::tests::issue_2954_inspect_intermediate_offset ... ISSUE2954 offset: faces=23 edges=66 vertices=44 manifold=Ok(false)
+ISSUE2954 offset integrity: Err(NotFound { operation: "topology::integrity::check: cached face shell", entity: Face(FaceId(0)) })
+ISSUE2954 offset volume: Ok(0.0)
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 3590 filtered out; finished in 0.47s
+

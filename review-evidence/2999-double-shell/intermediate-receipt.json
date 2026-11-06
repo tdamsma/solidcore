@@ -1,0 +1,14 @@
+{
+  "test_exit": "0",
+  "baseline": "b7002862b6c4aa40d1c23d6209e136e32b27e42b",
+  "offset_faces": 23,
+  "offset_edges": 66,
+  "offset_vertices": 44,
+  "manifold": false,
+  "volume_mm3": 0.0,
+  "integrity": "cached face shell missing on FaceId0; cache error not proof of geometric gap",
+  "production_source_restored_sha256": "de511e6119b4d576431a8688e7884c00f097538d8d678b6e66c2f527844e7826",
+  "diagnostic_scope": "private cfg(test) helper calls existing run_shell_offset; original record exported to ASCII SMB",
+  "offset_sha256": "f4d0e307aeb1f67347d44d25b456c09e35ac33c34df4bbf57b368f122761241d",
+  "diagnostic_binary_sha256": "fc63ec5d8e80af1f91153350f36bf3c584555a6724dd095389bb6b8eee211936"
+}
