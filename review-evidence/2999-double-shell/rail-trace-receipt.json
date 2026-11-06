@@ -1,0 +1,11 @@
+{
+  "exit": "0",
+  "actual_pairs": 2,
+  "each_rail_before_and_after": "z=1.9999999999999996..30; unchanged by manicuring",
+  "centre_after": "same old2..30 span",
+  "offset_sha256_after_trace": "f4d0e307aeb1f67347d44d25b456c09e35ac33c34df4bbf57b368f122761241d",
+  "previous_offset_sha256": "f4d0e307aeb1f67347d44d25b456c09e35ac33c34df4bbf57b368f122761241d",
+  "production_source_restored": true,
+  "p2_sha256": "de511e6119b4d576431a8688e7884c00f097538d8d678b6e66c2f527844e7826",
+  "geometry_sha256": "3c584bc98713f701845e5e24ffd131773a39313efbe58f940e97c34dd6ed2614"
+}

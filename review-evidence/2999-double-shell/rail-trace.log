@@ -1,0 +1,16 @@
+   Compiling solidcore v1.0.1 (/tmp/solidcore-2954-double-shell/crates/solidcore)
+    Finished `goldens` profile [optimized] target(s) in 4m 31s
+     Running unittests src/lib.rs (bin/goldens/deps/solidcore-0d568b637c6fc391)
+
+running 1 test
+test offset::offset_executive::p2::tests::issue_2954_inspect_intermediate_offset ... ISSUE2954 RAILS BEFORE d=0.5 rail1=(Ok(Vec3 { x: 29.000000000000004, y: -23.5, z: 1.9999999999999996 }), Ok(Vec3 { x: 29.000000000000004, y: -23.5, z: 30.0 })) rail2=(Ok(Vec3 { x: 29.000000000000007, y: -23.0, z: 1.9999999999999996 }), Ok(Vec3 { x: 29.000000000000007, y: -23.0, z: 30.0 })) centre=(Ok(Vec3 { x: 29.000000000000007, y: -23.0, z: -34567874.0 }), Ok(Vec3 { x: 29.000000000000007, y: -23.0, z: 34567878.0 }))
+ISSUE2954 RAILS AFTER d=0.5 rail1=(Ok(Vec3 { x: 29.000000000000004, y: -23.5, z: 1.9999999999999996 }), Ok(Vec3 { x: 29.000000000000004, y: -23.5, z: 30.0 })) rail2=(Ok(Vec3 { x: 29.000000000000007, y: -23.0, z: 1.9999999999999996 }), Ok(Vec3 { x: 29.000000000000007, y: -23.0, z: 30.0 })) centre=(Ok(Vec3 { x: 29.000000000000007, y: -23.0, z: 1.9999999999999996 }), Ok(Vec3 { x: 29.000000000000007, y: -23.0, z: 30.0 }))
+ISSUE2954 RAILS BEFORE d=0.5 rail1=(Ok(Vec3 { x: -29.00000000000003, y: -22.999999999999993, z: 1.9999999999999996 }), Ok(Vec3 { x: -29.00000000000003, y: -22.999999999999993, z: 30.0 })) rail2=(Ok(Vec3 { x: -29.000000000000004, y: -23.499999999999993, z: 1.9999999999999996 }), Ok(Vec3 { x: -29.000000000000004, y: -23.499999999999993, z: 30.0 })) centre=(Ok(Vec3 { x: -29.00000000000003, y: -22.999999999999993, z: -34567874.0 }), Ok(Vec3 { x: -29.00000000000003, y: -22.999999999999993, z: 34567878.0 }))
+ISSUE2954 RAILS AFTER d=0.5 rail1=(Ok(Vec3 { x: -29.00000000000003, y: -22.999999999999993, z: 1.9999999999999996 }), Ok(Vec3 { x: -29.00000000000003, y: -22.999999999999993, z: 30.0 })) rail2=(Ok(Vec3 { x: -29.000000000000004, y: -23.499999999999993, z: 1.9999999999999996 }), Ok(Vec3 { x: -29.000000000000004, y: -23.499999999999993, z: 30.0 })) centre=(Ok(Vec3 { x: -29.00000000000003, y: -22.999999999999993, z: 1.9999999999999996 }), Ok(Vec3 { x: -29.00000000000003, y: -22.999999999999993, z: 30.0 }))
+ISSUE2954 offset: faces=23 edges=66 vertices=44 manifold=Ok(false)
+ISSUE2954 offset integrity: Err(NotFound { operation: "topology::integrity::check: cached face shell", entity: Face(FaceId(0)) })
+ISSUE2954 offset volume: Ok(0.0)
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 3590 filtered out; finished in 0.45s
+
