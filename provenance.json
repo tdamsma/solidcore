@@ -1,0 +1,18 @@
+{
+  "issue": "tangency-labs/solidcore#2903",
+  "pr": "tangency-labs/solidcore#2924",
+  "kernel_fix_commit": "c8cb74ba535e3f0b1b6df8777f50c4a4c2eb55e9",
+  "view": {
+    "azimuth": 145,
+    "elevation": -35,
+    "size": "1600x1200"
+  },
+  "renderer": "solidcore-diag; actual Core tessellation with tolerance overlays",
+  "profile": "unoptimized diagnostic build; production checks reported separately in PR",
+  "images": {
+    "operand.png": "1f69df54a719695fdb7bf35089dbf36dc1aa3ea90710444e5a2ed87593815d0b",
+    "fixed-round.png": "48a2ffbbaa362105855498e4ee38235a3abc0447c0042f3657aa64296f33b874",
+    "fixed-chamfer.png": "21563c2d438150592732f02f9ab855db133a3c717459e1a5fd6bb6eb9867bcef"
+  },
+  "note": "Before is the actual valid operand: main refuses the final operation and produces no output. After images show formerly refused seed0 round and chamfer. All rendered faces succeed."
+}
